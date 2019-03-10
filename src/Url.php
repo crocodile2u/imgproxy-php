@@ -80,7 +80,7 @@ class Url
      * @param int $w
      * @return $this
      */
-    public function setW(int $w): Url
+    public function setWidth(int $w): Url
     {
         $this->w = $w;
         return $this;
@@ -90,7 +90,7 @@ class Url
      * @param int $h
      * @return $this
      */
-    public function setH(int $h): Url
+    public function setHeight(int $h): Url
     {
         $this->h = $h;
         return $this;
