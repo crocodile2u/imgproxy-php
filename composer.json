@@ -2,7 +2,7 @@
     "name": "crocodile2u/imgproxy-php",
     "description": "URL generator for darthsim/imgproxy",
     "version": "1.0.0",
-    "keywords": ["darthsim", ,"imgproxy", "url", "generator"],
+    "keywords": ["darthsim", "imgproxy", "url", "generator"],
     "license": "MIT",
     "authors": [
         {
