@@ -78,12 +78,8 @@ class Url
     public function signedPath(): string
     {
         $unsignedPath = $this->unsignedPath();
-        
-        if (!$this->builder->isInsecure()) {
-            return $this->secureSignedPath($unsignedPath);
-        }
-
-        return $this->insecureSignedPath(unsignedPath);
+        $result = $this->builder->isSecure() ? $this->secureSignedPath($unsignedPath) : $this->insecureSignedPath($unsignedPath);
+        return $result;
     }
 
     public function toString(): string
