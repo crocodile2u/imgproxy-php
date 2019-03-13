@@ -61,15 +61,13 @@ class Url
         return "/{$this->fit}/{$this->w}/{$this->h}/{$this->gravity}/{$enlarge}/{$encodedUrl}" . ($ext ? ".$ext" : "");
     }
 
-    public function insecureSignedPath(): string
+    public function insecureSignedPath(string $unsignedPath): string
     {
-        $unsignedPath = $this->unsignedPath();
         return "/insecure$unsignedPath";
     }
 
-    public function secureSignedPath(): string
+    public function secureSignedPath(string $unsignedPath): string
     {
-        $unsignedPath = $this->unsignedPath();
         $data = $this->builder->getSalt() . $unsignedPath;
         $sha256 = hash_hmac('sha256', $data, $this->builder->getKey(), true);
         $sha256Encoded = base64_encode($sha256);
@@ -79,11 +77,13 @@ class Url
 
     public function signedPath(): string
     {
+        $unsignedPath = $this->unsignedPath();
+        
         if (!$this->builder->isInsecure()) {
-            return $this->secureSignedPath();
+            return $this->secureSignedPath($unsignedPath);
         }
 
-        return $this->insecureSignedPath();
+        return $this->insecureSignedPath(unsignedPath);
     }
 
     public function toString(): string

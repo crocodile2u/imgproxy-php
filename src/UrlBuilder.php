@@ -22,7 +22,7 @@ class UrlBuilder
     /**
      * @var bool
      */
-    private $isInsecure;
+    private $secure = false;
 
     /**
      * UrlBuilder constructor.
@@ -33,11 +33,10 @@ class UrlBuilder
      */
     public function __construct(string $baseUrl, string $key = null, string $salt = null)
     {
-        $this->isInsecure = true;
         if ($key && $salt) {
             $this->key = pack("H*" , $key) ?: $this->throwException("Key expected to be hex-encoded string");
             $this->salt = pack("H*" , $salt) ?: $this->throwException("Salt expected to be hex-encoded string");
-            $this->isInsecure = false;
+            $this->secure = true;
         }
 
         $this->baseUrl = $baseUrl;
@@ -83,9 +82,9 @@ class UrlBuilder
         return $this->key;
     }
 
-    public function isInsecure(): bool
+    public function isSecure(): bool
     {
-        return $this->isInsecure;
+        return $this->secure;
     }
 
     /**
