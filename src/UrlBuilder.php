@@ -20,16 +20,26 @@ class UrlBuilder
     private $key;
 
     /**
+     * @var bool
+     */
+    private $isInsecure;
+
+    /**
      * UrlBuilder constructor.
      * @param string $baseUrl
      * @param string $key
      * @param string $salt
      * @throws Exception
      */
-    public function __construct(string $baseUrl, string $key, string $salt)
+    public function __construct(string $baseUrl, string $key = null, string $salt = null)
     {
-        $this->key = pack("H*" , $key) ?: $this->throwException("Key expected to be hex-encoded string");
-        $this->salt = pack("H*" , $salt) ?: $this->throwException("Salt expected to be hex-encoded string");
+        $this->isInsecure = true;
+        if ($key && $salt) {
+            $this->key = pack("H*" , $key) ?: $this->throwException("Key expected to be hex-encoded string");
+            $this->salt = pack("H*" , $salt) ?: $this->throwException("Salt expected to be hex-encoded string");
+            $this->isInsecure = false;
+        }
+
         $this->baseUrl = $baseUrl;
     }
 
@@ -71,6 +81,11 @@ class UrlBuilder
     public function getKey(): string
     {
         return $this->key;
+    }
+
+    public function isInsecure(): bool
+    {
+        return $this->isInsecure;
     }
 
     /**
