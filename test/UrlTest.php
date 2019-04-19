@@ -25,7 +25,7 @@ class UrlTest extends TestCase
      */
     public function testUnsignedPath(string $fit, int $w, int $h, string $gravity, bool $enlarge, string $expected)
     {
-        $url = new Url($this->urlBuilder(), self::IMAGE_URL, $w, $h);
+        $url = new Url($this->secureUrlBuilder(), self::IMAGE_URL, $w, $h);
         $url->setFit($fit)
             ->setGravity($gravity)
             ->setEnlarge($enlarge);
@@ -34,20 +34,31 @@ class UrlTest extends TestCase
 
     public function testToString()
     {
-        $url = new Url($this->urlBuilder(), self::IMAGE_URL, 300, 200);
+        $url = new Url($this->secureUrlBuilder(), self::IMAGE_URL, 300, 200);
         $expected = self::BASE_URL . "/-o6q11Q3DrNtMnCz_bZQzPdDxrGgx9BfVqQBbndAOwo/fit/300/200/sm/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg";
         $this->assertEquals($expected, $url->toString());
     }
 
     public function testSignedPath()
     {
-        $url = new Url($this->urlBuilder(), self::IMAGE_URL, 300, 200);
+        $url = new Url($this->secureUrlBuilder(), self::IMAGE_URL, 300, 200);
         $this->assertEquals("/-o6q11Q3DrNtMnCz_bZQzPdDxrGgx9BfVqQBbndAOwo/fit/300/200/sm/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg", $url->signedPath());
     }
 
-    protected function urlBuilder(): UrlBuilder
+    public function testInsecureSignedPath()
+    {
+        $url = new Url($this->insecureUrlBuilder(), self::IMAGE_URL, 300, 200);
+        $this->assertEquals("/insecure/fit/300/200/sm/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg", $url->signedPath());
+    }
+
+    protected function secureUrlBuilder(): UrlBuilder
     {
         return new UrlBuilder(self::BASE_URL, self::KEY, self::SALT);
+    }
+
+    protected function insecureUrlBuilder(): UrlBuilder
+    {
+        return new UrlBuilder(self::BASE_URL);
     }
 
     public function provideUnsignedPathInput()

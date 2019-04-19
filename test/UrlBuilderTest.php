@@ -19,4 +19,10 @@ class UrlBuilderTest extends TestCase
         $builder = new UrlBuilder("http://base.url", $hex, $hex);
         $this->assertInstanceOf(Url::class, $builder->build("", 100, 100));
     }
+
+    public function testBuildWithoutHex()
+    {
+        $builder = new UrlBuilder('http://base.url');
+        $this->assertInstanceOf(Url::class, $builder->build("", 100, 100));
+    }
 }
