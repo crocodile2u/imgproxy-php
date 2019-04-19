@@ -13,6 +13,7 @@ class UrlTest extends TestCase
     const SALT = "520f986b998545b4785e0defbc4f3c1203f22de2374a3d53cb7a7fe9fea309c5";
     const BASE_URL = "http://imgproxy";
     const IMAGE_URL = "local:///file.jpg";
+    const IMAGE_URL_WITH_QUERY = "http://storage.recrm.ru/Static/13083_8483b9/11/WSIMG/1200_795_I_MC_jpg_W/resources/properties/1668/picture_0009.jpg?F80A64FF1B6E8585909336490F78A1E4";
 
     /**
      * @param string $fit
@@ -23,9 +24,9 @@ class UrlTest extends TestCase
      * @param string $expected
      * @dataProvider provideUnsignedPathInput
      */
-    public function testUnsignedPath(string $fit, int $w, int $h, string $gravity, bool $enlarge, string $expected)
+    public function testUnsignedPath(string $url, string $fit, int $w, int $h, string $gravity, bool $enlarge, string $expected)
     {
-        $url = new Url($this->secureUrlBuilder(), self::IMAGE_URL, $w, $h);
+        $url = new Url($this->secureUrlBuilder(), $url, $w, $h);
         $url->setFit($fit)
             ->setGravity($gravity)
             ->setEnlarge($enlarge);
@@ -43,6 +44,13 @@ class UrlTest extends TestCase
     {
         $url = new Url($this->secureUrlBuilder(), self::IMAGE_URL, 300, 200);
         $this->assertEquals("/-o6q11Q3DrNtMnCz_bZQzPdDxrGgx9BfVqQBbndAOwo/fit/300/200/sm/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg", $url->signedPath());
+    }
+
+    public function testSignedPathWithQueryString()
+    {
+        $url = new Url($this->secureUrlBuilder(), self::IMAGE_URL_WITH_QUERY, 1200, 900);
+        $this->assertEquals("/rjoc9XmpriN0yAtOJSeWBXFYcAiXSFe-_qDSsfFg_Bs/fit/1200/900/sm/0/aHR0cDovL3N0b3JhZ2UucmVjcm0ucnUvU3RhdGljLzEzMDgzXzg0ODNiOS8xMS9XU0lNRy8xMjAwXzc5NV9JX01DX2pwZ19XL3Jlc291cmNlcy9wcm9wZXJ0aWVzLzE2NjgvcGljdHVyZV8wMDA5LmpwZz9GODBBNjRGRjFCNkU4NTg1OTA5MzM2NDkwRjc4QTFFNA.jpg", $url->signedPath());
+
     }
 
     public function testInsecureSignedPath()
@@ -65,6 +73,7 @@ class UrlTest extends TestCase
     {
         return [
             [
+                self::IMAGE_URL,
                 "fit",
                 300,
                 200,
@@ -73,6 +82,7 @@ class UrlTest extends TestCase
                 "/fit/300/200/sm/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg"
             ],
             [
+                self::IMAGE_URL,
                 "fill",
                 300,
                 200,
@@ -81,6 +91,7 @@ class UrlTest extends TestCase
                 "/fill/300/200/sm/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg"
             ],
             [
+                self::IMAGE_URL,
                 "fit",
                 400,
                 200,
@@ -89,6 +100,7 @@ class UrlTest extends TestCase
                 "/fit/400/200/sm/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg"
             ],
             [
+                self::IMAGE_URL,
                 "fit",
                 300,
                 300,
@@ -97,6 +109,7 @@ class UrlTest extends TestCase
                 "/fit/300/300/sm/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg"
             ],
             [
+                self::IMAGE_URL,
                 "fit",
                 300,
                 200,
@@ -105,12 +118,22 @@ class UrlTest extends TestCase
                 "/fit/300/200/no/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg"
             ],
             [
+                self::IMAGE_URL,
                 "fit",
                 300,
                 200,
                 "sm",
                 true,
                 "/fit/300/200/sm/1/bG9jYWw6Ly8vZmlsZS5qcGc.jpg"
+            ],
+            [
+                self::IMAGE_URL_WITH_QUERY,
+                "fit",
+                1200,
+                900,
+                "sm",
+                false,
+                "/fit/1200/900/sm/0/aHR0cDovL3N0b3JhZ2UucmVjcm0ucnUvU3RhdGljLzEzMDgzXzg0ODNiOS8xMS9XU0lNRy8xMjAwXzc5NV9JX01DX2pwZ19XL3Jlc291cmNlcy9wcm9wZXJ0aWVzLzE2NjgvcGljdHVyZV8wMDA5LmpwZz9GODBBNjRGRjFCNkU4NTg1OTA5MzM2NDkwRjc4QTFFNA.jpg"
             ],
         ];
     }
