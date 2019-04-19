@@ -57,7 +57,7 @@ class Url
     {
         $enlarge = (string)(int)$this->enlarge;
         $encodedUrl = rtrim(strtr(base64_encode($this->imageUrl), '+/', '-_'), '=');
-        $ext = $this->extension ?: pathinfo($this->imageUrl, PATHINFO_EXTENSION);
+        $ext = $this->extension ?: $this->resolveExtension();
         return "/{$this->fit}/{$this->w}/{$this->h}/{$this->gravity}/{$enlarge}/{$encodedUrl}" . ($ext ? ".$ext" : "");
     }
 
@@ -134,5 +134,20 @@ class Url
     {
         $this->extension = $extension;
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function resolveExtension(): string
+    {
+        if ("local://" === substr($this->imageUrl, 0, 8)) {
+            $path = substr($this->imageUrl, 8);
+        } else {
+            $path = parse_url($this->imageUrl, PHP_URL_PATH);
+        }
+
+        $ext = $path ? pathinfo($path, PATHINFO_EXTENSION) : "";
+        return $ext ?: "";
     }
 }
