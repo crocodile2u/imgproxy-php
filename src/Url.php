@@ -58,6 +58,7 @@ class Url
         $enlarge = (string)(int)$this->enlarge;
         $encodedUrl = rtrim(strtr(base64_encode($this->imageUrl), '+/', '-_'), '=');
         $ext = $this->extension ?: $this->resolveExtension();
+        $ext = $ext ? mb_strtolower($ext) : null;
         return "/{$this->fit}/{$this->w}/{$this->h}/{$this->gravity}/{$enlarge}/{$encodedUrl}" . ($ext ? ".$ext" : "");
     }
 
