@@ -25,18 +25,24 @@ class UrlBuilder
     private $secure = false;
 
     /**
+     * @var int
+     */
+    private $signatureSize;
+
+    /**
      * UrlBuilder constructor.
      * @param string $baseUrl
      * @param string $key
      * @param string $salt
      * @throws Exception
      */
-    public function __construct(string $baseUrl, string $key = null, string $salt = null)
+    public function __construct(string $baseUrl, string $key = null, string $salt = null, $signatureSize = 0)
     {
         if ($key && $salt) {
             $this->key = pack("H*" , $key) ?: $this->throwException("Key expected to be hex-encoded string");
             $this->salt = pack("H*" , $salt) ?: $this->throwException("Salt expected to be hex-encoded string");
             $this->secure = true;
+            $this->signatureSize = $signatureSize;
         }
 
         $this->baseUrl = $baseUrl;
@@ -85,6 +91,14 @@ class UrlBuilder
     public function isSecure(): bool
     {
         return $this->secure;
+    }
+
+    /**
+     * @return int
+     */
+    public function getSignatureSize(): int
+    {
+        return $this->signatureSize;
     }
 
     /**
