@@ -4,20 +4,21 @@ declare(strict_types=1);
 
 namespace Imgproxy;
 
+use Imgproxy\ProcessingOption\Height;
+use Imgproxy\ProcessingOption\OptionSet;
+use Imgproxy\ProcessingOption\Width;
+
 class Url
 {
     /**
      * @var string
      */
     private $imageUrl;
+
     /**
-     * @var int
+     * @var OptionSet
      */
-    private $w;
-    /**
-     * @var int
-     */
-    private $h;
+    private $options;
     /**
      * @var string
      */
@@ -49,8 +50,9 @@ class Url
     {
         $this->builder = $builder;
         $this->imageUrl = $imageUrl;
-        $this->w = $w;
-        $this->h = $h;
+        $this->options = new OptionSet();
+        $this->setWidth($w);
+        $this->setHeight($h);
     }
 
     public function unsignedPath(): string
@@ -58,7 +60,9 @@ class Url
         $enlarge = (string)(int)$this->enlarge;
         $encodedUrl = rtrim(strtr(base64_encode($this->imageUrl), '+/', '-_'), '=');
         $ext = $this->extension ?: $this->resolveExtension();
-        return "/{$this->fit}/{$this->w}/{$this->h}/{$this->gravity}/{$enlarge}/{$encodedUrl}" . ($ext ? ".$ext" : "");
+        $w = $this->options->width()->value();
+        $h = $this->options->height()->value();
+        return "/{$this->fit}/{$w}/{$h}/{$this->gravity}/{$enlarge}/{$encodedUrl}" . ($ext ? ".$ext" : "");
     }
 
     public function insecureSignedPath(string $unsignedPath): string
@@ -87,14 +91,19 @@ class Url
         return $this->builder->getBaseUrl() . $this->signedPath();
     }
 
+    public function setProcessingOption(ProcessingOption $option): self
+    {
+        $this->options->set($option);
+        return $this;
+    }
+
     /**
      * @param int $w
      * @return $this
      */
     public function setWidth(int $w): Url
     {
-        $this->w = $w;
-        return $this;
+        return $this->setProcessingOption(new Width($w));
     }
 
     /**
@@ -103,8 +112,7 @@ class Url
      */
     public function setHeight(int $h): Url
     {
-        $this->h = $h;
-        return $this;
+        return $this->setProcessingOption(new Height($h));
     }
 
     /**
