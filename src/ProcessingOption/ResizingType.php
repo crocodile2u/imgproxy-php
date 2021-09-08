@@ -6,7 +6,7 @@ namespace Imgproxy\ProcessingOption;
 
 use Imgproxy\ProcessingOption;
 
-class Height extends ProcessingOption
+class ResizingType extends ProcessingOption
 {
-    protected $name = ProcessingOption::HEIGHT;
+    protected $name = ProcessingOption::RESIZING_TYPE;
 }

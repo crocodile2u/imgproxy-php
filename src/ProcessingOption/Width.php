@@ -6,7 +6,7 @@ namespace Imgproxy\ProcessingOption;
 
 use Imgproxy\ProcessingOption;
 
-class Width extends Measure
+class Width extends ProcessingOption
 {
     protected $name = ProcessingOption::WIDTH;
 }

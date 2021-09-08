@@ -46,8 +46,39 @@ abstract class ProcessingOption
         FILENAME = 'fn',
         FORMAT = 'f';
 
-    public abstract function name(): string;
-    public abstract function toString(): string;
+    /**
+     * @var string
+     */
+    protected $name;
+    /**
+     * @var array
+     */
+    private $values = [];
+
+    final public function __construct(...$values)
+    {
+        $this->values = $values;
+    }
+
+    final public function name(): string
+    {
+        return $this->name;
+    }
+
+    final public function values(): array
+    {
+        return $this->values;
+    }
+
+    final public function firstValue()
+    {
+        return reset($this->values);
+    }
+
+    public function toString(): string
+    {
+        return $this->format($this->name(), ...$this->values);
+    }
 
     protected function format(string $name, ...$args): string {
         $nameAndArgs = array_merge([$name], $args);
