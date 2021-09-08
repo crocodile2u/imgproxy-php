@@ -137,7 +137,7 @@ class OptionSet
 
     public function withEnlarge(): self
     {
-        return $this->set(ProcessingOption::ENLARGE, "t");
+        return $this->set(ProcessingOption::ENLARGE, 1);
     }
 
     public function withoutEnlarge(): self
@@ -154,7 +154,7 @@ class OptionSet
     {
         switch ($gravityType) {
             case null:
-                return $this->set(ProcessingOption::EXTEND, "t");
+                return $this->set(ProcessingOption::EXTEND, 1);
             case Gravity::NORTH:
             case Gravity::SOUTH:
             case Gravity::EAST:
@@ -166,11 +166,11 @@ class OptionSet
             case Gravity::CENTER:
                 $gravityX = (int)$gravityX;
                 $gravityY = (int)$gravityY;
-                return $this->set(ProcessingOption::EXTEND, "t", $gravityType, $gravityX, $gravityY);
+                return $this->set(ProcessingOption::EXTEND, 1, $gravityType, $gravityX, $gravityY);
             case Gravity::FOCUS_POINT:
                 $gravityX = (float)$gravityX;
                 $gravityY = (float)$gravityY;
-                return $this->set(ProcessingOption::EXTEND, "t", $gravityType, $gravityX, $gravityY);
+                return $this->set(ProcessingOption::EXTEND, 1, $gravityType, $gravityX, $gravityY);
             default:
                 throw new \InvalidArgumentException("unexpected gravity type for 'extend': $gravityType");
         }
@@ -292,7 +292,7 @@ class OptionSet
 
     public function withTrim(int $threshold, string $color = "", bool $equalHor = false, bool $equalVer = false): self
     {
-        return $this->set(ProcessingOption::TRIM, $threshold, $color, $equalHor ? 't' : 'f', $equalVer ? 't' : 'f');
+        return $this->set(ProcessingOption::TRIM, $threshold, $color, (int)$equalHor, (int)$equalVer);
     }
 
     public function withoutTrim(): self
@@ -642,11 +642,11 @@ class OptionSet
         }
         return $this->set(
             ProcessingOption::JPEG_OPTIONS,
-            $progressive ? 't' : 'f',
-            $noSubsample ? 't' : 'f',
-            $trellisQuant ? 't' : 'f',
-            $overshootDeringing ? 't' : 'f',
-            $optimizeScans ? 't' : 'f',
+            (int)$progressive,
+            (int)$noSubsample,
+            (int)$trellisQuant,
+            (int)$overshootDeringing,
+            (int)$optimizeScans,
             $quantTable
         );
     }
@@ -671,8 +671,8 @@ class OptionSet
         }
         return $this->set(
             ProcessingOption::PNG_OPTIONS,
-            $interlaced ? 't' : 'f',
-            $quantize ? 't' : 'f',
+            (int)$interlaced,
+            (int)$quantize,
             $quantizationColors
         );
     }
@@ -693,8 +693,8 @@ class OptionSet
     ): self {
         return $this->set(
             ProcessingOption::GIF_OPTIONS,
-            $optimizeFrames ? 't' : 'f',
-            $optimizeTransparency ? 't' : 'f'
+            (int)$optimizeFrames,
+            (int)$optimizeTransparency
         );
     }
 
@@ -776,7 +776,7 @@ class OptionSet
 
     public function withStripMetadata(): self
     {
-        return $this->set(ProcessingOption::STRIP_METADATA, 't');
+        return $this->set(ProcessingOption::STRIP_METADATA, 1);
     }
 
     public function withoutStripMetadata(): self
@@ -791,7 +791,7 @@ class OptionSet
 
     public function withStripColorProfile(): self
     {
-        return $this->set(ProcessingOption::STRIP_COLOR_PROFILE, 't');
+        return $this->set(ProcessingOption::STRIP_COLOR_PROFILE, 1);
     }
 
     public function withoutStripColorProfile(): self
@@ -806,7 +806,7 @@ class OptionSet
 
     public function withAutoRotate(): self
     {
-        return $this->set(ProcessingOption::AUTO_ROTATE, 't');
+        return $this->set(ProcessingOption::AUTO_ROTATE, 1);
     }
 
     public function withoutAutoRotate(): self
