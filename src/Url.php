@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Imgproxy;
 
 use Imgproxy\ProcessingOption\Height;
-use Imgproxy\ProcessingOption\OptionSet;
+use Imgproxy\OptionSet;
 use Imgproxy\ProcessingOption\Width;
 
 class Url

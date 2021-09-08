@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Imgproxy;
 
-abstract class ProcessingOption
+class ProcessingOption
 {
     public const WIDTH = 'w',
         HEIGHT = 'h',
@@ -72,7 +72,7 @@ abstract class ProcessingOption
 
     final public function firstValue()
     {
-        return reset($this->values);
+        return count($this->values) ? reset($this->values) : null;
     }
 
     public function toString(): string
