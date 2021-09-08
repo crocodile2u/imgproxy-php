@@ -22,9 +22,9 @@ class UrlTest extends TestCase
      * @param string $gravity
      * @param bool $enlarge
      * @param string $expected
-     * @dataProvider provideUnsignedPathInput
+     * @dataProvider provideUnsignedPathLegacyModeInput
      */
-    public function testUnsignedPath(string $url, string $fit, int $w, int $h, string $gravity, bool $enlarge, string $expected)
+    public function testUnsignedPathLegacyMode(string $url, string $fit, int $w, int $h, string $gravity, bool $enlarge, string $expected)
     {
         $url = new Url($this->secureUrlBuilder(), $url, $w, $h);
         $url->setFit($fit)
@@ -69,7 +69,7 @@ class UrlTest extends TestCase
         return new UrlBuilder(self::BASE_URL);
     }
 
-    public function provideUnsignedPathInput()
+    public function provideUnsignedPathLegacyModeInput()
     {
         return [
             [

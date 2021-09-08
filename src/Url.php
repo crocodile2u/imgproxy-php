@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Imgproxy;
 
-use Imgproxy\ProcessingOption\Height;
-use Imgproxy\OptionSet;
-use Imgproxy\ProcessingOption\Width;
-
 class Url
 {
+    public const MODE_LEGACY = 'legacy';
+    public const MODE_ADVANCED = 'advanced';
     /**
      * @var string
      */
@@ -40,6 +38,8 @@ class Url
      */
     private $builder;
 
+    private $mode = self::MODE_LEGACY;
+
     /**
      * Url constructor.
      * @param string $imageUrl
@@ -55,14 +55,34 @@ class Url
         $this->setHeight($h);
     }
 
+    public function useLegacyMode(): self
+    {
+        $this->mode = self::MODE_LEGACY;
+        return $this;
+    }
+
+    public function useAdvancedMode(): self
+    {
+        $this->mode = self::MODE_ADVANCED;
+        return $this;
+    }
+
+    public function options(): OptionSet
+    {
+        return $this->options;
+    }
+
     public function unsignedPath(): string
     {
-        $enlarge = (string)(int)$this->enlarge;
-        $encodedUrl = rtrim(strtr(base64_encode($this->imageUrl), '+/', '-_'), '=');
-        $ext = $this->extension ?: $this->resolveExtension();
-        $w = $this->options->width()->value();
-        $h = $this->options->height()->value();
-        return "/{$this->fit}/{$w}/{$h}/{$this->gravity}/{$enlarge}/{$encodedUrl}" . ($ext ? ".$ext" : "");
+        switch ($this->mode) {
+            case self::MODE_LEGACY:
+                return $this->unsignedPathLegacy();
+            case self::MODE_ADVANCED:
+                return $this->unsignedPathAdvanced();
+            default:
+                throw new \LogicException("unknown URL mode");
+        }
+
     }
 
     public function insecureSignedPath(string $unsignedPath): string
@@ -91,19 +111,14 @@ class Url
         return $this->builder->getBaseUrl() . $this->signedPath();
     }
 
-    public function setProcessingOption(ProcessingOption $option): self
-    {
-        $this->options->set($option);
-        return $this;
-    }
-
     /**
      * @param int $w
      * @return $this
      */
     public function setWidth(int $w): Url
     {
-        return $this->setProcessingOption(new Width($w));
+        $this->options->withWidth($w);
+        return $this;
     }
 
     /**
@@ -112,7 +127,8 @@ class Url
      */
     public function setHeight(int $h): Url
     {
-        return $this->setProcessingOption(new Height($h));
+        $this->options->withHeight($h);
+        return $this;
     }
 
     /**
@@ -122,6 +138,7 @@ class Url
     public function setFit(string $fit): Url
     {
         $this->fit = $fit;
+        $this->options->withResizingType($fit);
         return $this;
     }
 
@@ -132,6 +149,7 @@ class Url
     public function setGravity(string $gravity): Url
     {
         $this->gravity = $gravity;
+        $this->options->withGravity($gravity);
         return $this;
     }
 
@@ -142,6 +160,7 @@ class Url
     public function setEnlarge(bool $enlarge): Url
     {
         $this->enlarge = $enlarge;
+        $enlarge ? $this->options->withEnlarge() : $this->options->withoutEnlarge();
         return $this;
     }
 
@@ -152,6 +171,7 @@ class Url
     public function setExtension(?string $extension): Url
     {
         $this->extension = $extension;
+        $extension ? $this->options->withFormat($extension) : $this->options->withoutFormat();
         return $this;
     }
 
@@ -168,5 +188,25 @@ class Url
 
         $ext = $path ? pathinfo($path, PATHINFO_EXTENSION) : "";
         return $ext ?: "";
+    }
+
+    /**
+     * @return string
+     */
+    private function unsignedPathLegacy(): string
+    {
+        $enlarge = (string)(int)$this->enlarge;
+        $encodedUrl = rtrim(strtr(base64_encode($this->imageUrl), '+/', '-_'), '=');
+        $ext = $this->extension ?: $this->resolveExtension();
+        $w = $this->options->width();
+        $h = $this->options->height();
+        return "/{$this->fit}/{$w}/{$h}/{$this->gravity}/{$enlarge}/{$encodedUrl}" . ($ext ? ".$ext" : "");
+    }
+
+    private function unsignedPathAdvanced()
+    {
+        $encodedUrl = rtrim(strtr(base64_encode($this->imageUrl), '+/', '-_'), '=');
+        $ext = $this->extension ?: $this->resolveExtension();
+        return "/{$this->options->toString()}/{$encodedUrl}" . ($ext ? ".$ext" : "");
     }
 }
