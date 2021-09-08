@@ -9,15 +9,7 @@ class OptionSet
     /**
      * @var array
      */
-    private $options;
-
-    /**
-     * @param array $options
-     */
-    public function __construct()
-    {
-        $this->options = [];
-    }
+    private $options = [];
 
     private function set(string $name, ...$args): self
     {
@@ -48,7 +40,15 @@ class OptionSet
 
     public function withWidth(int $w): self
     {
+        if ($w < 0) {
+            throw new \InvalidArgumentException("width must be >= 0");
+        }
         return $this->set(ProcessingOption::WIDTH, $w);
+    }
+
+    public function withoutWidth(): self
+    {
+        return $this->unset(ProcessingOption::WIDTH);
     }
 
     public function width(): ?int
@@ -58,7 +58,15 @@ class OptionSet
 
     public function withHeight(int $h): self
     {
+        if ($h < 0) {
+            throw new \InvalidArgumentException("height must be >= 0");
+        }
         return $this->set(ProcessingOption::HEIGHT, $h);
+    }
+
+    public function withoutHeight(): self
+    {
+        return $this->unset(ProcessingOption::HEIGHT);
     }
 
     public function height(): ?int
