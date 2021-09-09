@@ -6,6 +6,7 @@ namespace Imgproxy;
 
 class OptionSet
 {
+    const TRANSPARENT_BG = "FF00FF";
     /**
      * @var array
      */
@@ -126,10 +127,6 @@ class OptionSet
             throw new \InvalidArgumentException("dpr must be greater than 0");
         }
 
-        if ($v === 1) {
-            return $this->withoutDpr();
-        }
-
         return $this->set(ProcessingOption::DPR, $v);
     }
 
@@ -153,35 +150,18 @@ class OptionSet
         return $this->unset(ProcessingOption::ENLARGE);
     }
 
-    public function enlarge(): bool
+    public function enlarge(): ?bool
     {
         return $this->firstValue(ProcessingOption::ENLARGE, 'bool');
     }
 
     public function withExtend(string $gravityType = null, $gravityX = null, $gravityY = null): self
     {
-        switch ($gravityType) {
-            case null:
-                return $this->set(ProcessingOption::EXTEND, 1);
-            case Gravity::NORTH:
-            case Gravity::SOUTH:
-            case Gravity::EAST:
-            case Gravity::WEST:
-            case Gravity::NORTH_EAST:
-            case Gravity::NORTH_WEST:
-            case Gravity::SOUTH_EAST:
-            case Gravity::SOUTH_WEST:
-            case Gravity::CENTER:
-                $gravityX = (int)$gravityX;
-                $gravityY = (int)$gravityY;
-                return $this->set(ProcessingOption::EXTEND, 1, $gravityType, $gravityX, $gravityY);
-            case Gravity::FOCUS_POINT:
-                $gravityX = (float)$gravityX;
-                $gravityY = (float)$gravityY;
-                return $this->set(ProcessingOption::EXTEND, 1, $gravityType, $gravityX, $gravityY);
-            default:
-                throw new \InvalidArgumentException("unexpected gravity type for 'extend': $gravityType");
+        if ($gravityType === Gravity::SMART) {
+            throw new \InvalidArgumentException("extend doesnt support smart gravity");
         }
+        $gravity = $this->gravityOptions($gravityType, [], $gravityX, $gravityY);
+        return $this->set(ProcessingOption::EXTEND, 1, ...$gravity);
     }
 
     public function withoutExtend(): self
@@ -196,27 +176,19 @@ class OptionSet
 
     public function withGravity(string $type = null, $x = null, $y = null): self
     {
-        switch ($type) {
-            case Gravity::SMART:
-                return $this->set(ProcessingOption::GRAVITY, $type);
-            case Gravity::NORTH:
-            case Gravity::SOUTH:
-            case Gravity::EAST:
-            case Gravity::WEST:
-            case Gravity::NORTH_EAST:
-            case Gravity::NORTH_WEST:
-            case Gravity::SOUTH_EAST:
-            case Gravity::SOUTH_WEST:
-            case Gravity::CENTER:
-                $x = (int)$x;
-                $y = (int)$y;
-                return $this->set(ProcessingOption::GRAVITY, $type, $x, $y);
-            case Gravity::FOCUS_POINT:
-                $x = (float)$x;
-                $y = (float)$y;
-                return $this->set(ProcessingOption::GRAVITY, $type, $x, $y);
-            default:
-                throw new \InvalidArgumentException("unexpected gravity type $type");
+        $gravity = $this->gravityOptions($type, [], $x, $y);
+        if (count($gravity) === 0) {
+            throw new \InvalidArgumentException("no gravity type specified");
+        }
+        return $this->set(ProcessingOption::GRAVITY, ...$gravity);
+    }
+
+    private function validateFocusPointGravity(float $x, float $y) {
+        if (($x < 0) || ($x > 1)) {
+            throw new \InvalidArgumentException("focus point gravity expects X in range 0-1");
+        }
+        if (($y < 0) || ($y > 1)) {
+            throw new \InvalidArgumentException("focus point gravity expects Y in range 0-1");
         }
     }
 
@@ -232,30 +204,8 @@ class OptionSet
 
     public function withCrop($w, $h, string $gravityType = null, $gravityX = null, $gravityY = null): self
     {
-        switch ($gravityType) {
-            case null:
-                return $this->set(ProcessingOption::CROP, $w, $h);
-            case Gravity::SMART:
-                return $this->set(ProcessingOption::CROP, $w, $h, $gravityType);
-            case Gravity::NORTH:
-            case Gravity::SOUTH:
-            case Gravity::EAST:
-            case Gravity::WEST:
-            case Gravity::NORTH_EAST:
-            case Gravity::NORTH_WEST:
-            case Gravity::SOUTH_EAST:
-            case Gravity::SOUTH_WEST:
-            case Gravity::CENTER:
-                $gravityX = (int)$gravityX;
-                $gravityY = (int)$gravityY;
-                return $this->set(ProcessingOption::CROP, $w, $h, $gravityType, $gravityX, $gravityY);
-            case Gravity::FOCUS_POINT:
-                $gravityX = (float)$gravityX;
-                $gravityY = (float)$gravityY;
-                return $this->set(ProcessingOption::CROP, $w, $h, $gravityType, $gravityX, $gravityY);
-            default:
-                throw new \InvalidArgumentException("unexpected gravity type for 'extend': $gravityType");
-        }
+        $gravity = $this->gravityOptions($gravityType, [], $gravityX, $gravityY);
+        return $this->set(ProcessingOption::CROP, $w, $h, ...$gravity);
     }
 
     public function withoutCrop(): self
@@ -266,6 +216,35 @@ class OptionSet
     public function crop(): ?array
     {
         return $this->get(ProcessingOption::CROP);
+    }
+
+    private function gravityOptions(string $type = null, array $defaults, $x = null, $y = null): array
+    {
+        switch ($type) {
+            case null:
+                return $defaults;
+            case Gravity::SMART:
+                return [$type];
+            case Gravity::NORTH:
+            case Gravity::SOUTH:
+            case Gravity::EAST:
+            case Gravity::WEST:
+            case Gravity::NORTH_EAST:
+            case Gravity::NORTH_WEST:
+            case Gravity::SOUTH_EAST:
+            case Gravity::SOUTH_WEST:
+            case Gravity::CENTER:
+                $x = (int)$x;
+                $y = (int)$y;
+                return [$type, $x, $y];
+            case Gravity::FOCUS_POINT:
+                $x = (float)$x;
+                $y = (float)$y;
+                $this->validateFocusPointGravity($x, $y);
+                return [$type, $x, $y];
+            default:
+                throw new \InvalidArgumentException("unexpected gravity type $type");
+        }
     }
 
     public function withPadding(int $t, int $r, int $b, int $l): self
@@ -301,6 +280,18 @@ class OptionSet
     public function withTrim(int $threshold, string $color = "", bool $equalHor = false, bool $equalVer = false): self
     {
         return $this->set(ProcessingOption::TRIM, $threshold, $color, (int)$equalHor, (int)$equalVer);
+    }
+
+    /**
+     * @see https://docs.imgproxy.net/generating_the_url_advanced?id=trim - Note #2
+     * @param int $threshold
+     * @param bool $equalHor
+     * @param bool $equalVer
+     * @return $this
+     */
+    public function withTrimTransparentBackground(int $threshold, bool $equalHor = false, bool $equalVer = false): self
+    {
+        return $this->withTrim($threshold, self::TRANSPARENT_BG, $equalHor, $equalVer);
     }
 
     public function withoutTrim(): self
