@@ -3,6 +3,7 @@
 namespace Imgproxy\Test;
 
 use Imgproxy\OptionSet;
+use Imgproxy\ResizingType;
 use PHPUnit\Framework\TestCase;
 
 class OptionSetTest extends TestCase
@@ -24,13 +25,7 @@ class OptionSetTest extends TestCase
 
     public function testWithoutWidth()
     {
-        $os = new OptionSet();
-
-        $os->withWidth(1);
-        $this->assertNotNull($os->width());
-
-        $os->withoutWidth();
-        $this->assertNull($os->width());
+        $this->assertPropertyUnset('withoutWidth', 'width', 'withWidth', 1);
     }
 
     /**
@@ -50,13 +45,7 @@ class OptionSetTest extends TestCase
 
     public function testWithoutHeight()
     {
-        $os = new OptionSet();
-
-        $os->withHeight(1);
-        $this->assertNotNull($os->height());
-
-        $os->withoutHeight();
-        $this->assertNull($os->height());
+        $this->assertPropertyUnset('withoutHeight', 'height', 'withHeight', 1);
     }
 
     public function providerSize()
@@ -66,5 +55,46 @@ class OptionSetTest extends TestCase
             "valid > 0" => [1, false],
             "invalid" => [-1, true],
         ];
+    }
+
+    /**
+     * @param $rt
+     * @param $expectException
+     * @dataProvider providerResizingType
+     */
+    public function testWithResizingType($rt, $expectException)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withResizingType($rt);
+        $this->assertEquals($rt, $os->resizingType());
+    }
+
+    public function testWithoutResizingType()
+    {
+        $this->assertPropertyUnset('withoutResizingType', 'resizingType', 'withResizingType', ResizingType::AUTO);
+    }
+
+    public function providerResizingType()
+    {
+        return [
+            [ResizingType::AUTO, false],
+            [ResizingType::FILL, false],
+            [ResizingType::FIT, false],
+            ["invalid", true],
+        ];
+    }
+
+    protected function assertPropertyUnset($unsetter, $getter, $setter, ...$value)
+    {
+        $os = new OptionSet();
+
+        $os->$setter(...$value);
+        $this->assertNotNull($os->$getter());
+
+        $os->$unsetter();
+        $this->assertNull($os->$getter());
     }
 }
