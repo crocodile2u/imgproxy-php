@@ -3,6 +3,7 @@
 namespace Imgproxy\Test;
 
 use Imgproxy\OptionSet;
+use Imgproxy\ResizingAlgorithm;
 use Imgproxy\ResizingType;
 use PHPUnit\Framework\TestCase;
 
@@ -83,6 +84,38 @@ class OptionSetTest extends TestCase
             [ResizingType::AUTO, false],
             [ResizingType::FILL, false],
             [ResizingType::FIT, false],
+            ["invalid", true],
+        ];
+    }
+
+    /**
+     * @param $ra
+     * @param $expectException
+     * @dataProvider providerResizingAlgorithm
+     */
+    public function testWithResizingAlgorithm($ra, $expectException)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withResizingAlgorithm($ra);
+        $this->assertEquals($ra, $os->resizingAlgorithm());
+    }
+
+    public function testWithoutResizingAlgorithm()
+    {
+        $this->assertPropertyUnset('withoutResizingAlgorithm', 'resizingAlgorithm', 'withResizingAlgorithm', ResizingAlgorithm::LINEAR);
+    }
+
+    public function providerResizingAlgorithm()
+    {
+        return [
+            [ResizingAlgorithm::LANCZOS3, false],
+            [ResizingAlgorithm::LANCZOS2, false],
+            [ResizingAlgorithm::CUBIC, false],
+            [ResizingAlgorithm::LINEAR, false],
+            [ResizingAlgorithm::NEAREST, false],
             ["invalid", true],
         ];
     }
