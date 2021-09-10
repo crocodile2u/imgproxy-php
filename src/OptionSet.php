@@ -35,7 +35,7 @@ class OptionSet
         $parts = [];
         foreach ($this->options as $name => $args) {
             $nameAndArgs = array_merge([$name], $args);
-            return join(":", $nameAndArgs);// not using [$name, ...$args] to keep it 7.2 compatible
+            $parts[] = join(":", $nameAndArgs);// not using [$name, ...$args] to keep it 7.2 compatible
         }
         return join("/", $parts);
     }
@@ -229,9 +229,19 @@ class OptionSet
         return $this->get(ProcessingOption::PADDING);
     }
 
-    public function withTrim(int $threshold, string $color = "", bool $equalHor = false, bool $equalVer = false): self
+    public function withTrim(int $threshold, string $color = "", bool ...$equalHorVer): self
     {
-        return $this->set(ProcessingOption::TRIM, $threshold, $color, (int)$equalHor, (int)$equalVer);
+        $args = [];
+        if ((strlen($color) > 0) || (count($equalHorVer) > 0)) {
+            $args[] = $color;
+        }
+        if (count($equalHorVer) > 0) {
+            $args[] = (int)$equalHorVer[0];
+        }
+        if (count($equalHorVer) > 1) {
+            $args[] = (int)$equalHorVer[1];
+        }
+        return $this->set(ProcessingOption::TRIM, $threshold, ...$args);
     }
 
     /**
@@ -450,6 +460,9 @@ class OptionSet
         int $yOffset = 0,
         float $scale = 0.0
     ): self {
+        if (($opacity < 0) || ($opacity > 1)) {
+            throw new \InvalidArgumentException("opacity must be between 0 and 1");
+        }
         switch ($position) {
             case WatermarkPosition::CENTER:
             case WatermarkPosition::NORTH:
@@ -480,7 +493,7 @@ class OptionSet
 
     public function withWatermarkEncodedUrl(string $encodedUrl): self
     {
-        return $this->set(ProcessingOption::WATERMARK, $encodedUrl);
+        return $this->set(ProcessingOption::WATERMARK_URL, $encodedUrl);
     }
 
     public function watermarkUrl(): ?string
@@ -548,7 +561,7 @@ class OptionSet
         );
     }
 
-    public function PngOptions(): ?array
+    public function pngOptions(): ?array
     {
         return $this->get(ProcessingOption::PNG_OPTIONS);
     }
@@ -564,7 +577,7 @@ class OptionSet
         );
     }
 
-    public function GifOptions(): ?array
+    public function gifOptions(): ?array
     {
         return $this->get(ProcessingOption::GIF_OPTIONS);
     }
@@ -600,9 +613,9 @@ class OptionSet
         return $this->set(ProcessingOption::PRESET, $preset1, ...$morePresets);
     }
 
-    public function presets(): array
+    public function presets(): ?array
     {
-        return (array)$this->get(ProcessingOption::PRESET);
+        return $this->get(ProcessingOption::PRESET);
     }
 
     public function withCacheBuster(string $id): self

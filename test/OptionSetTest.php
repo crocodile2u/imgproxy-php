@@ -4,14 +4,84 @@ namespace Imgproxy\Test;
 
 use Imgproxy\Gravity;
 use Imgproxy\OptionSet;
+use Imgproxy\ProcessingOption;
 use Imgproxy\ResizingAlgorithm;
 use Imgproxy\ResizingType;
 use Imgproxy\Rotate;
 use Imgproxy\UnsharpeningMode;
+use Imgproxy\WatermarkPosition;
 use PHPUnit\Framework\TestCase;
 
 class OptionSetTest extends TestCase
 {
+    /**
+     * @param OptionSet $os
+     * @param string $expected
+     * @dataProvider provideToString
+     */
+    public function testToString(OptionSet $os, string $expected)
+    {
+        $this->assertEquals($expected, $os->toString());
+    }
+
+    public function provideToString()
+    {
+        return [
+            [
+                (new OptionSet()),
+                ""
+            ],
+            [
+                (new OptionSet())->withWidth(100)->withHeight(200),
+                "w:100/h:200"
+            ],
+            [
+                (new OptionSet())
+                    ->withWidth(100)
+                    ->withHeight(200)
+                    ->withResizingType(ResizingType::FIT)
+                    ->withResizingAlgorithm(ResizingAlgorithm::LINEAR)
+                    ->withDpr(2)
+                    ->withEnlarge()
+                    ->withExtend()
+                    ->withGravity(Gravity::SOUTH)
+                    ->withCrop(100, 200)
+                    ->withPadding(1, 2, 3, 4)
+                    ->withTrim(32)
+                    ->withRotate(Rotate::CLOCKWISE)
+                    ->withMaxBytes(100)
+                    ->withBackgroundRGB(50, 100, 150)
+                    ->withBackgroundAlpha(.5)
+                    ->withBrightness(100)
+                    ->withContrast(.5)
+                    ->withSaturation(.5)
+                    ->withBlur(2.5)
+                    ->withSharpen(2.5)
+                    ->withPixelate(5)
+                    ->withUnsharpening(UnsharpeningMode::ALWAYS, 2, 30)
+                    ->withWatermarkConfig(0.5)
+                    ->withWatermarkUrl("http://example.com")
+                    ->withSvgCssStyle(".class{}")
+                    ->withJpegOptions()
+                    ->withPngOptions()
+                    ->withGifOptions()
+                    ->withPage(5)
+                    ->withVideoThumbnailSecond(500)
+                    ->withPresets("p1", "p2")
+                    ->withCacheBuster("cb-id")
+                    ->withStripMetadata()
+                    ->withStripColorProfile()
+                    ->withAutoRotate()
+                    ->withFilename("test.png")
+                    ->withFormat("png"),
+                "w:100/h:200/rt:fit/ra:linear/dpr:2/el:1/ex:1/g:so:0:0/c:100:200/pd:1:2:3:4/t:32/rot:90/mb:100/bg:50:100:150/bga:0.5/br:100/co:0.5/sa:0.5/bl:2.5/sh:2.5/pix:5/ush:always:2:30/wm:0.5:ce:0:0:0/wmu:" .
+                base64_encode("http://example.com") .
+                "/st:" . base64_encode(".class{}") .
+                "/jpgo:0:0:0:0:0:0/pngo:0:0:256/gifo:0:0/pg:5/vts:500/pr:p1:p2/cb:cb-id/sm:1/scp:1/ar:1/fn:test.png/f:png"
+            ],
+        ];
+    }
+
     /**
      * @param $w
      * @param $expectException
@@ -316,16 +386,16 @@ class OptionSetTest extends TestCase
         $os = new OptionSet();
 
         $os->withTrim(32);
-        $this->assertEquals([32, "", false, false], $os->trim());
+        $this->assertEquals([32], $os->trim());
 
         $os->withTrim(32, "000000");
-        $this->assertEquals([32, "000000", false, false], $os->trim());
+        $this->assertEquals([32, "000000"], $os->trim());
 
         $os->withTrim(32, "000000", true);
-        $this->assertEquals([32, "000000", true, false], $os->trim());
+        $this->assertEquals([32, "000000", 1], $os->trim());
 
         $os->withTrim(32, "000000", true, true);
-        $this->assertEquals([32, "000000", true, true], $os->trim());
+        $this->assertEquals([32, "000000", 1, 1], $os->trim());
     }
 
     public function testWithTrimTransparentBackground()
@@ -581,38 +651,6 @@ class OptionSetTest extends TestCase
         $this->assertEquals($expectedArgs, $os->unsharpening());
     }
 
-    public function providerPositiveFloat()
-    {
-        return [
-            [false, 0.1],
-            [false, 1],
-            [false, 10.1],
-            [true, 0],
-            [true, -0.1],
-        ];
-    }
-
-    public function providerPositiveInt()
-    {
-        return [
-            [false, 1],
-            [false, 10],
-            [true, 0],
-            [true, -1],
-        ];
-    }
-
-    public function providerFloatFromZeroToOne()
-    {
-        return [
-            [false, 0],
-            [false, 1],
-            [false, 0.5],
-            [true, -0.1],
-            [true, 1.1],
-        ];
-    }
-
     public function providerUnsharpening()
     {
         return [
@@ -658,6 +696,311 @@ class OptionSetTest extends TestCase
                 0,
                 []
             ],
+        ];
+    }
+
+    /**
+     * @param $expectException
+     * @param $expectedArgs
+     * @param float $opacity
+     * @param mixed ...$positionOptions
+     * @dataProvider providerWatermarkConfig
+     */
+    public function testWithWatermarkConfig($expectException, $expectedArgs, float $opacity, ...$positionOptions)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withWatermarkConfig($opacity, ...$positionOptions);
+        $this->assertEquals($expectedArgs, $os->watermarkConfig());
+    }
+
+    public function providerWatermarkConfig()
+    {
+        return [
+            [false, [0.0, WatermarkPosition::CENTER, 0, 0, 0.0], 0.0],
+            [false, [1.0, WatermarkPosition::CENTER, 0, 0, 0.0], 1.0],
+            [false, [0.5, WatermarkPosition::CENTER, 0, 0, 0.0], .5],
+            [true, [], -0.1],
+            [true, [], 1.1],
+            [false, [0.0, WatermarkPosition::NORTH, 0, 0, 0.0], 0.0, WatermarkPosition::NORTH],
+            [false, [0.0, WatermarkPosition::SOUTH, 0, 0, 0.0], 0.0, WatermarkPosition::SOUTH],
+            [false, [0.0, WatermarkPosition::EAST, 0, 0, 0.0], 0.0, WatermarkPosition::EAST],
+            [false, [0.0, WatermarkPosition::WEST, 0, 0, 0.0], 0.0, WatermarkPosition::WEST],
+            [false, [0.0, WatermarkPosition::NORTH_EAST, 0, 0, 0.0], 0.0, WatermarkPosition::NORTH_EAST],
+            [false, [0.0, WatermarkPosition::NORTH_WEST, 0, 0, 0.0], 0.0, WatermarkPosition::NORTH_WEST],
+            [false, [0.0, WatermarkPosition::SOUTH_EAST, 0, 0, 0.0], 0.0, WatermarkPosition::SOUTH_EAST],
+            [false, [0.0, WatermarkPosition::SOUTH_WEST, 0, 0, 0.0], 0.0, WatermarkPosition::SOUTH_WEST],
+            [false, [0.0, WatermarkPosition::REPLICATE, 0, 0, 0.0], 0.0, WatermarkPosition::REPLICATE],
+            [false, [0.0, WatermarkPosition::SOUTH_WEST, 10, 10, 1.5], 0.0, WatermarkPosition::SOUTH_WEST, 10, 10, 1.5],
+            [true, [], 0.0, "invalid"],
+        ];
+    }
+
+    public function testWithWatermarkUrl()
+    {
+        $os = new OptionSet();
+        $url = "http://example.com";
+        $os->withWatermarkUrl($url);
+        $this->assertEquals($url, $os->watermarkUrl());
+    }
+
+    public function testWithWatermarkEncodedUrl()
+    {
+        $os = new OptionSet();
+        $url = "http://example.com";
+        $os->withWatermarkEncodedUrl(base64_encode($url));
+        $this->assertEquals($url, $os->watermarkUrl());
+    }
+
+    public function testWithSvgCssStyle()
+    {
+        $os = new OptionSet();
+        $style = ".class{}";
+        $os->withSvgCssStyle($style);
+        $this->assertEquals($style, $os->svgCssStyle());
+    }
+
+    public function testWithSvgEncodedCssStyle()
+    {
+        $os = new OptionSet();
+        $style = ".class{}";
+        $os->withSvgEncodedCssStyle(base64_encode($style));
+        $this->assertEquals($style, $os->svgCssStyle());
+    }
+
+    /**
+     * @param $expectException
+     * @param $expectedArgs
+     * @param bool $progressive
+     * @param bool $noSubsample
+     * @param bool $trellisQuant
+     * @param bool $overshootDeringing
+     * @param bool $optimizeScans
+     * @param int $quantTable
+     * @dataProvider provideJpegOptions
+     */
+    public function testWithJpegOptions(
+        $expectException,
+        $expectedArgs,
+        bool $progressive,
+        bool $noSubsample,
+        bool $trellisQuant,
+        bool $overshootDeringing,
+        bool $optimizeScans,
+        int $quantTable
+    ) {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withJpegOptions(
+            $progressive,
+            $noSubsample,
+            $trellisQuant,
+            $overshootDeringing,
+            $optimizeScans,
+            $quantTable
+        );
+        $this->assertEquals($expectedArgs, $os->jpegOptions());
+    }
+
+    public function provideJpegOptions()
+    {
+        return [
+            [false, [0, 0, 0, 0, 0, 0], false, false, false, false, false, 0],
+            [false, [1, 1, 1, 1, 1, 8], true, true, true, true, true, 8],
+            [true, [], false, false, false, false, false, -1],
+            [true, [], false, false, false, false, false, 9],
+        ];
+    }
+
+    /**
+     * @param $expectException
+     * @param $expectedArgs
+     * @param bool $interlaced
+     * @param bool $quantize
+     * @param int $quantizationColors
+     * @dataProvider providePngOptions
+     */
+    public function testWithPngOptions(
+        $expectException,
+        $expectedArgs,
+        bool $interlaced,
+        bool $quantize,
+        int $quantizationColors
+    ) {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withPngOptions($interlaced, $quantize, $quantizationColors);
+        $this->assertEquals($expectedArgs, $os->pngOptions());
+    }
+
+    public function providePngOptions()
+    {
+        return [
+            [false, [0, 0, 2], false, false, 2],
+            [false, [1, 1, 256], true, true, 256],
+            [true, [], false, false, 1],
+            [true, [], false, false, 0],
+            [true, [], false, false, -1],
+            [true, [], false, false, 257],
+        ];
+    }
+
+    /**
+     * @param bool $optimizeFrames
+     * @param bool $optimizeTransparency
+     * @dataProvider provideGifOptions
+     */
+    public function testWithGifOptions(bool $optimizeFrames, bool $optimizeTransparency) {
+        $os = new OptionSet();
+        $os->withGifOptions($optimizeFrames, $optimizeTransparency);
+        $this->assertEquals([$optimizeFrames ? 1 : 0, $optimizeTransparency ? 1 : 0], $os->gifOptions());
+    }
+
+    public function provideGifOptions()
+    {
+        return [
+            [false, false],
+            [true, true],
+            [false, true],
+            [true, false],
+        ];
+    }
+
+    /**
+     * @param $expectException
+     * @param int $n
+     * @dataProvider providerPositiveInt
+     */
+    public function testWithPage($expectException, int $n)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withPage($n);
+        $this->assertEquals($n, $os->page());
+    }
+
+    /**
+     * @param $expectException
+     * @param int $n
+     * @dataProvider providerPositiveInt
+     */
+    public function testWithVideoThumbnailSecond($expectException, int $n)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withVideoThumbnailSecond($n);
+        $this->assertEquals($n, $os->videoThumbnailSecond());
+    }
+
+    /**
+     * @param mixed ...$presets
+     * @dataProvider providerPresets
+     */
+    public function testWithPresets(...$presets)
+    {
+        $os = new OptionSet();
+        $os->withPresets(...$presets);
+        $this->assertEquals($presets, $os->presets());
+    }
+
+    public function providerPresets()
+    {
+        return [
+            ["p1"],
+            ["p1", "p2"],
+            ["p1", "p2", "pN"],
+        ];
+    }
+
+    public function testWithCacheBuster()
+    {
+        $os = new OptionSet();
+        $os->withCacheBuster("cb");
+        $this->assertEquals("cb", $os->cacheBuster());
+    }
+
+    public function testWithStripMetadata()
+    {
+        $os = new OptionSet();
+        $os->withStripMetadata();
+        $this->assertTrue($os->mustStripMetadata());
+    }
+
+    public function testWithStripColorProfile()
+    {
+        $os = new OptionSet();
+        $os->withStripColorProfile();
+        $this->assertTrue($os->mustStripColorProfile());
+    }
+
+    public function testWithAutoRotate()
+    {
+        $os = new OptionSet();
+        $os->withAutoRotate();
+        $this->assertTrue($os->mustAutoRotate());
+    }
+
+    public function testWithFilename()
+    {
+        $os = new OptionSet();
+        $os->withFilename("filename");
+        $this->assertEquals("filename", $os->filename());
+    }
+
+    public function testWithFormat()
+    {
+        $os = new OptionSet();
+        $os->withFormat("webp");
+        $this->assertEquals("webp", $os->format());
+    }
+
+    public function testUnset()
+    {
+        $os = new OptionSet();
+        $os->withPresets("test");
+        $os->unset(ProcessingOption::PRESET);
+        $this->assertNull($os->presets());
+    }
+
+    public function providerPositiveFloat()
+    {
+        return [
+            [false, 0.1],
+            [false, 1],
+            [false, 10.1],
+            [true, 0],
+            [true, -0.1],
+        ];
+    }
+
+    public function providerPositiveInt()
+    {
+        return [
+            [false, 1],
+            [false, 10],
+            [true, 0],
+            [true, -1],
+        ];
+    }
+
+    public function providerFloatFromZeroToOne()
+    {
+        return [
+            [false, 0],
+            [false, 1],
+            [false, 0.5],
+            [true, -0.1],
+            [true, 1.1],
         ];
     }
 }
