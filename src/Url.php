@@ -160,7 +160,7 @@ class Url
     public function setEnlarge(bool $enlarge): Url
     {
         $this->enlarge = $enlarge;
-        $enlarge ? $this->options->withEnlarge() : $this->options->withoutEnlarge();
+        $enlarge ? $this->options->withEnlarge() : $this->options->unset(ProcessingOption::ENLARGE);
         return $this;
     }
 
@@ -171,7 +171,7 @@ class Url
     public function setExtension(?string $extension): Url
     {
         $this->extension = $extension;
-        $extension ? $this->options->withFormat($extension) : $this->options->withoutFormat();
+        $extension ? $this->options->withFormat($extension) : $this->options->unset(ProcessingOption::FORMAT);
         return $this;
     }
 

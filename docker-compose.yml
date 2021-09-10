@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+  imgproxy:
+    image: darthsim/imgproxy:latest
+    environment:
+      IMGPROXY_KEY: "943b421c9eb07c830af81030552c86009268de4e532ba2ee2eab8247c6da0881"
+      IMGPROXY_SALT: "520f986b998545b4785e0defbc4f3c1203f22de2374a3d53cb7a7fe9fea309c5"
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: "/opt/images"
+    ports:
+      - 8080:8080
+    volumes:
+      - ./test/sample/sample_640×426.jpeg:/opt/images/file.jpg
