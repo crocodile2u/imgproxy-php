@@ -7,6 +7,7 @@ namespace Imgproxy;
 class OptionSet
 {
     const TRANSPARENT_BG = "FF00FF";
+    const DEFAULT_UNSHARPENING_DIVIDOR = 24;
     /**
      * @var array
      */
@@ -18,7 +19,7 @@ class OptionSet
         return $this;
     }
 
-    private function unset(string $name): self
+    public function unset(string $name): self
     {
         unset($this->options[$name]);
         return $this;
@@ -47,11 +48,6 @@ class OptionSet
         return $this->set(ProcessingOption::WIDTH, $w);
     }
 
-    public function withoutWidth(): self
-    {
-        return $this->unset(ProcessingOption::WIDTH);
-    }
-
     public function width(): ?int
     {
         return $this->firstValue(ProcessingOption::WIDTH, 'int');
@@ -63,11 +59,6 @@ class OptionSet
             throw new \InvalidArgumentException("height must be >= 0");
         }
         return $this->set(ProcessingOption::HEIGHT, $h);
-    }
-
-    public function withoutHeight(): self
-    {
-        return $this->unset(ProcessingOption::HEIGHT);
     }
 
     public function height(): ?int
@@ -85,11 +76,6 @@ class OptionSet
             default:
                 throw new \InvalidArgumentException("unknown resizing type $rt");
         }
-    }
-
-    public function withoutResizingType(): self
-    {
-        return $this->unset(ProcessingOption::RESIZING_TYPE);
     }
 
     public function resizingType(): ?string
@@ -111,11 +97,6 @@ class OptionSet
         }
     }
 
-    public function withoutResizingAlgorithm(): self
-    {
-        return $this->unset(ProcessingOption::RESIZING_ALGORITHM);
-    }
-
     public function resizingAlgorithm(): ?string
     {
         return $this->firstValue(ProcessingOption::RESIZING_ALGORITHM, 'string');
@@ -130,11 +111,6 @@ class OptionSet
         return $this->set(ProcessingOption::DPR, $v);
     }
 
-    public function withoutDpr(): self
-    {
-        return $this->unset(ProcessingOption::DPR);
-    }
-
     public function dpr(): ?int
     {
         return $this->firstValue(ProcessingOption::DPR, 'int');
@@ -143,11 +119,6 @@ class OptionSet
     public function withEnlarge(): self
     {
         return $this->set(ProcessingOption::ENLARGE, 1);
-    }
-
-    public function withoutEnlarge(): self
-    {
-        return $this->unset(ProcessingOption::ENLARGE);
     }
 
     public function enlarge(): ?bool
@@ -164,11 +135,6 @@ class OptionSet
         return $this->set(ProcessingOption::EXTEND, 1, ...$gravity);
     }
 
-    public function withoutExtend(): self
-    {
-        return $this->unset(ProcessingOption::EXTEND);
-    }
-
     public function extend(): ?array
     {
         return $this->get(ProcessingOption::EXTEND);
@@ -183,18 +149,14 @@ class OptionSet
         return $this->set(ProcessingOption::GRAVITY, ...$gravity);
     }
 
-    private function validateFocusPointGravity(float $x, float $y) {
+    private function validateFocusPointGravity(float $x, float $y)
+    {
         if (($x < 0) || ($x > 1)) {
             throw new \InvalidArgumentException("focus point gravity expects X in range 0-1");
         }
         if (($y < 0) || ($y > 1)) {
             throw new \InvalidArgumentException("focus point gravity expects Y in range 0-1");
         }
-    }
-
-    public function withoutGravity(): self
-    {
-        return $this->unset(ProcessingOption::GRAVITY);
     }
 
     public function gravity(): ?array
@@ -206,11 +168,6 @@ class OptionSet
     {
         $gravity = $this->gravityOptions($gravityType, [], $gravityX, $gravityY);
         return $this->set(ProcessingOption::CROP, $w, $h, ...$gravity);
-    }
-
-    public function withoutCrop(): self
-    {
-        return $this->unset(ProcessingOption::CROP);
     }
 
     public function crop(): ?array
@@ -267,11 +224,6 @@ class OptionSet
         return $this->set(ProcessingOption::PADDING, $t, $r, $b, $l);
     }
 
-    public function withoutPadding(): self
-    {
-        return $this->unset(ProcessingOption::PADDING);
-    }
-
     public function padding(): ?array
     {
         return $this->get(ProcessingOption::PADDING);
@@ -294,11 +246,6 @@ class OptionSet
         return $this->withTrim($threshold, self::TRANSPARENT_BG, $equalHor, $equalVer);
     }
 
-    public function withoutTrim(): self
-    {
-        return $this->unset(ProcessingOption::TRIM);
-    }
-
     public function trim(): ?array
     {
         return $this->get(ProcessingOption::TRIM);
@@ -310,17 +257,11 @@ class OptionSet
             case Rotate::CLOCKWISE:
             case Rotate::COUNTERCLOCKWISE:
             case Rotate::UPSIDE_DOWN:
-                return $this->set(ProcessingOption::ROTATE, $angle);
             case Rotate::NONE:
-                return $this->withoutRotate();
+                return $this->set(ProcessingOption::ROTATE, $angle);
             default:
                 throw new \InvalidArgumentException("only 0, 90, 180, 270 degrees rotation is supported");
         }
-    }
-
-    public function withoutRotate(): self
-    {
-        return $this->unset(ProcessingOption::ROTATE);
     }
 
     public function rotate(): ?int
@@ -334,11 +275,6 @@ class OptionSet
             throw new \InvalidArgumentException("max_bytes must be greater than 0");
         }
         return $this->set(ProcessingOption::MAX_BYTES, $bytes);
-    }
-
-    public function withoutMaxBytes(): self
-    {
-        return $this->unset(ProcessingOption::MAX_BYTES);
     }
 
     public function maxBytes(): ?int
@@ -377,11 +313,6 @@ class OptionSet
         return $this->set(ProcessingOption::BACKGROUND, $hexColor);
     }
 
-    public function withoutBackground(): self
-    {
-        return $this->unset(ProcessingOption::BACKGROUND);
-    }
-
     public function background(): ?array
     {
         return $this->get(ProcessingOption::BACKGROUND);
@@ -393,11 +324,6 @@ class OptionSet
             throw new \InvalidArgumentException("background_alpha must be between 0 and 1");
         }
         return $this->set(ProcessingOption::BACKGROUND_ALPHA, $alpha);
-    }
-
-    public function withoutBackgroundAlpha(): self
-    {
-        return $this->unset(ProcessingOption::BACKGROUND_ALPHA);
     }
 
     public function backgroundAlpha(): ?float
@@ -413,11 +339,6 @@ class OptionSet
         return $this->set(ProcessingOption::BRIGHTNESS, $v);
     }
 
-    public function withoutBrightness(): self
-    {
-        return $this->unset(ProcessingOption::BRIGHTNESS);
-    }
-
     public function brightness(): ?int
     {
         return $this->firstValue(ProcessingOption::BRIGHTNESS, 'int');
@@ -429,11 +350,6 @@ class OptionSet
             throw new \InvalidArgumentException("contrast must be between 0 and 1");
         }
         return $this->set(ProcessingOption::CONTRAST, $v);
-    }
-
-    public function withoutContrast(): self
-    {
-        return $this->unset(ProcessingOption::CONTRAST);
     }
 
     public function contrast(): ?float
@@ -449,11 +365,6 @@ class OptionSet
         return $this->set(ProcessingOption::SATURATION, $v);
     }
 
-    public function withoutSaturation(): self
-    {
-        return $this->unset(ProcessingOption::SATURATION);
-    }
-
     public function saturation(): ?float
     {
         return $this->firstValue(ProcessingOption::SATURATION, 'float');
@@ -465,11 +376,6 @@ class OptionSet
             throw new \InvalidArgumentException("sigma must be greater than 0");
         }
         return $this->set(ProcessingOption::BLUR, $sigma);
-    }
-
-    public function withoutBlur(): self
-    {
-        return $this->unset(ProcessingOption::BLUR);
     }
 
     public function blur(): ?float
@@ -485,11 +391,6 @@ class OptionSet
         return $this->set(ProcessingOption::SHARPEN, $sigma);
     }
 
-    public function withoutSharpen(): self
-    {
-        return $this->unset(ProcessingOption::SHARPEN);
-    }
-
     public function sharpen(): ?float
     {
         return $this->firstValue(ProcessingOption::SHARPEN, 'float');
@@ -501,11 +402,6 @@ class OptionSet
             throw new \InvalidArgumentException("size must be greater than 0");
         }
         return $this->set(ProcessingOption::PIXELATE, $size);
-    }
-
-    public function withoutPixelate(): self
-    {
-        return $this->unset(ProcessingOption::PIXELATE);
     }
 
     public function pixelate(): ?int
@@ -530,7 +426,8 @@ class OptionSet
             $weight = 1;
         }
         if ($dividor === null) {
-            $weight = 24;// default value according to https://docs.imgproxy.net/configuration?id=unsharpening
+            // default value according to https://docs.imgproxy.net/configuration?id=unsharpening
+            $dividor = self::DEFAULT_UNSHARPENING_DIVIDOR;
         }
         if ($weight <= 0) {
             throw new \InvalidArgumentException("weight must be greater than 0");
@@ -539,11 +436,6 @@ class OptionSet
             throw new \InvalidArgumentException("dividor must be greater than 0");
         }
         return $this->set(ProcessingOption::UNSHARPENING, $mode, $weight, $dividor);
-    }
-
-    public function withoutUnsharpening(): self
-    {
-        return $this->unset(ProcessingOption::UNSHARPENING);
     }
 
     public function unsharpening(): ?array
@@ -576,11 +468,6 @@ class OptionSet
         return $this->set(ProcessingOption::WATERMARK, $opacity, $position, $xOffset, $yOffset, $scale);
     }
 
-    public function withoutWatermarkConfig(): self
-    {
-        return $this->unset(ProcessingOption::WATERMARK);
-    }
-
     public function watermarkConfig(): ?array
     {
         return $this->get(ProcessingOption::WATERMARK);
@@ -594,11 +481,6 @@ class OptionSet
     public function withWatermarkEncodedUrl(string $encodedUrl): self
     {
         return $this->set(ProcessingOption::WATERMARK, $encodedUrl);
-    }
-
-    public function withoutWatermarkUrl(): self
-    {
-        return $this->unset(ProcessingOption::WATERMARK);
     }
 
     public function watermarkUrl(): ?string
@@ -615,11 +497,6 @@ class OptionSet
     public function withSvgEncodedCssStyle(string $encodedCss): self
     {
         return $this->set(ProcessingOption::STYLE, $encodedCss);
-    }
-
-    public function withoutSvgCssStyle(): self
-    {
-        return $this->unset(ProcessingOption::STYLE);
     }
 
     public function svgCssStyle(): ?string
@@ -650,11 +527,6 @@ class OptionSet
         );
     }
 
-    public function withoutJpegOptions(): self
-    {
-        return $this->unset(ProcessingOption::JPEG_OPTIONS);
-    }
-
     public function jpegOptions(): ?array
     {
         return $this->get(ProcessingOption::JPEG_OPTIONS);
@@ -676,11 +548,6 @@ class OptionSet
         );
     }
 
-    public function withoutPngOptions(): self
-    {
-        return $this->unset(ProcessingOption::PNG_OPTIONS);
-    }
-
     public function PngOptions(): ?array
     {
         return $this->get(ProcessingOption::PNG_OPTIONS);
@@ -697,11 +564,6 @@ class OptionSet
         );
     }
 
-    public function withoutGifOptions(): self
-    {
-        return $this->unset(ProcessingOption::GIF_OPTIONS);
-    }
-
     public function GifOptions(): ?array
     {
         return $this->get(ProcessingOption::GIF_OPTIONS);
@@ -713,11 +575,6 @@ class OptionSet
             throw new \InvalidArgumentException("page must be >= 0");
         }
         return $this->set(ProcessingOption::PAGE, $n);
-    }
-
-    public function withoutPage(): self
-    {
-        return $this->unset(ProcessingOption::PAGE);
     }
 
     public function page(): ?int
@@ -733,11 +590,6 @@ class OptionSet
         return $this->set(ProcessingOption::VIDEO_THUMBNAIL_SECOND, $n);
     }
 
-    public function withoutVideoThumbnailSecond(): self
-    {
-        return $this->unset(ProcessingOption::VIDEO_THUMBNAIL_SECOND);
-    }
-
     public function videoThumbnailSecond(): ?int
     {
         return $this->firstValue(ProcessingOption::VIDEO_THUMBNAIL_SECOND, 'int');
@@ -746,11 +598,6 @@ class OptionSet
     public function withPresets(string $preset1, string ...$morePresets): self
     {
         return $this->set(ProcessingOption::PRESET, $preset1, ...$morePresets);
-    }
-
-    public function withoutPresets(): self
-    {
-        return $this->unset(ProcessingOption::PRESET);
     }
 
     public function presets(): array
@@ -763,11 +610,6 @@ class OptionSet
         return $this->set(ProcessingOption::CACHEBUSTER, $id);
     }
 
-    public function withoutCacheBuster(): self
-    {
-        return $this->unset(ProcessingOption::CACHEBUSTER);
-    }
-
     public function cacheBuster(): ?string
     {
         return $this->firstValue(ProcessingOption::CACHEBUSTER, 'string');
@@ -776,11 +618,6 @@ class OptionSet
     public function withStripMetadata(): self
     {
         return $this->set(ProcessingOption::STRIP_METADATA, 1);
-    }
-
-    public function withoutStripMetadata(): self
-    {
-        return $this->unset(ProcessingOption::STRIP_METADATA);
     }
 
     public function mustStripMetadata(): bool
@@ -793,11 +630,6 @@ class OptionSet
         return $this->set(ProcessingOption::STRIP_COLOR_PROFILE, 1);
     }
 
-    public function withoutStripColorProfile(): self
-    {
-        return $this->unset(ProcessingOption::STRIP_COLOR_PROFILE);
-    }
-
     public function mustStripColorProfile(): bool
     {
         return filter_var($this->firstValue(ProcessingOption::STRIP_COLOR_PROFILE, 'bool'), FILTER_VALIDATE_BOOL);
@@ -806,11 +638,6 @@ class OptionSet
     public function withAutoRotate(): self
     {
         return $this->set(ProcessingOption::AUTO_ROTATE, 1);
-    }
-
-    public function withoutAutoRotate(): self
-    {
-        return $this->unset(ProcessingOption::AUTO_ROTATE);
     }
 
     public function mustAutoRotate(): bool
@@ -823,11 +650,6 @@ class OptionSet
         return $this->set(ProcessingOption::FILENAME, $filename);
     }
 
-    public function withoutFilename(): self
-    {
-        return $this->unset(ProcessingOption::FILENAME);
-    }
-
     public function filename(): string
     {
         return $this->firstValue(ProcessingOption::FILENAME, 'string');
@@ -836,11 +658,6 @@ class OptionSet
     public function withFormat(string $format): self
     {
         return $this->set(ProcessingOption::FORMAT, $format);
-    }
-
-    public function withoutFormat(): self
-    {
-        return $this->unset(ProcessingOption::FORMAT);
     }
 
     public function format(): string

@@ -6,6 +6,8 @@ use Imgproxy\Gravity;
 use Imgproxy\OptionSet;
 use Imgproxy\ResizingAlgorithm;
 use Imgproxy\ResizingType;
+use Imgproxy\Rotate;
+use Imgproxy\UnsharpeningMode;
 use PHPUnit\Framework\TestCase;
 
 class OptionSetTest extends TestCase
@@ -25,11 +27,6 @@ class OptionSetTest extends TestCase
         $this->assertEquals($w, $os->width());
     }
 
-    public function testWithoutWidth()
-    {
-        $this->assertPropertyUnset('withoutWidth', 'width', 'withWidth', 1);
-    }
-
     /**
      * @param $w
      * @param $expectException
@@ -43,11 +40,6 @@ class OptionSetTest extends TestCase
         $os = new OptionSet();
         $os->withHeight($w);
         $this->assertEquals($w, $os->height());
-    }
-
-    public function testWithoutHeight()
-    {
-        $this->assertPropertyUnset('withoutHeight', 'height', 'withHeight', 1);
     }
 
     public function providerSize()
@@ -74,11 +66,6 @@ class OptionSetTest extends TestCase
         $this->assertEquals($rt, $os->resizingType());
     }
 
-    public function testWithoutResizingType()
-    {
-        $this->assertPropertyUnset('withoutResizingType', 'resizingType', 'withResizingType', ResizingType::AUTO);
-    }
-
     public function providerResizingType()
     {
         return [
@@ -102,11 +89,6 @@ class OptionSetTest extends TestCase
         $os = new OptionSet();
         $os->withResizingAlgorithm($ra);
         $this->assertEquals($ra, $os->resizingAlgorithm());
-    }
-
-    public function testWithoutResizingAlgorithm()
-    {
-        $this->assertPropertyUnset('withoutResizingAlgorithm', 'resizingAlgorithm', 'withResizingAlgorithm', ResizingAlgorithm::LINEAR);
     }
 
     public function providerResizingAlgorithm()
@@ -136,11 +118,6 @@ class OptionSetTest extends TestCase
         $this->assertEquals($val, $os->dpr());
     }
 
-    public function testWithoutDpr()
-    {
-        $this->assertPropertyUnset('withoutDpr', 'dpr', 'withDpr', 2);
-    }
-
     public function providerDpr()
     {
         return [
@@ -159,11 +136,6 @@ class OptionSetTest extends TestCase
         $this->assertEquals(1, $os->enlarge());
     }
 
-    public function testWithoutEnlarge()
-    {
-        $this->assertPropertyUnset('withoutEnlarge', 'enlarge', 'withEnlarge');
-    }
-
     /**
      * @param $expectException
      * @param $expectedArgs
@@ -178,11 +150,6 @@ class OptionSetTest extends TestCase
         $os = new OptionSet();
         $os->withExtend(...$gravityOptions);
         $this->assertEquals($expectedArgs, $os->extend());
-    }
-
-    public function testWithoutExtend()
-    {
-        $this->assertPropertyUnset('withoutExtend', 'extend', 'withExtend');
     }
 
     public function providerExtend()
@@ -233,11 +200,6 @@ class OptionSetTest extends TestCase
         $this->assertEquals($expectedArgs, $os->gravity());
     }
 
-    public function testWithoutGravity()
-    {
-        $this->assertPropertyUnset('withoutGravity', 'gravity', 'withGravity', Gravity::CENTER);
-    }
-
     public function providerGravity()
     {
         return [
@@ -284,11 +246,6 @@ class OptionSetTest extends TestCase
         $os = new OptionSet();
         $os->withCrop($w, $h, ...$gravityOptions);
         $this->assertEquals($expectedArgs, $os->crop());
-    }
-
-    public function testWithoutCrop()
-    {
-        $this->assertPropertyUnset('withoutCrop', 'crop', 'withCrop', 10, 10);
     }
 
     public function providerCrop()
@@ -339,11 +296,6 @@ class OptionSetTest extends TestCase
         $this->assertEquals([$t, $r, $b, $l], $os->padding());
     }
 
-    public function testWithoutPadding()
-    {
-        $this->assertPropertyUnset('withoutPadding', 'padding', 'withPadding', 10, 10, 10, 10);
-    }
-
     public function providerPadding()
     {
         return [
@@ -383,19 +335,329 @@ class OptionSetTest extends TestCase
         $this->assertEquals([32, OptionSet::TRANSPARENT_BG, false, false], $os->trim());
     }
 
-    public function testWithoutTrim()
+    /**
+     * @param $expectException
+     * @param $angle
+     * @dataProvider providerRotate
+     */
+    public function testWithRotate($expectException, $angle)
     {
-        $this->assertPropertyUnset('withoutTrim', 'trim', 'withTrim', 32);
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withRotate($angle);
+        $this->assertEquals($angle, $os->rotate());
     }
 
-    protected function assertPropertyUnset($unsetter, $getter, $setter, ...$value)
+    public function providerRotate()
     {
+        return [
+            [false, Rotate::NONE],
+            [false, Rotate::CLOCKWISE],
+            [false, Rotate::COUNTERCLOCKWISE],
+            [false, Rotate::UPSIDE_DOWN],
+            [true, 1],
+        ];
+    }
+
+    /**
+     * @param $expectException
+     * @param $value
+     * @dataProvider providerMaxBytes
+     */
+    public function testWithMaxBytes($expectException, $value)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
         $os = new OptionSet();
+        $os->withMaxBytes($value);
+        $this->assertEquals($value, $os->maxBytes());
+    }
 
-        $os->$setter(...$value);
-        $this->assertNotNull($os->$getter());
+    public function providerMaxBytes()
+    {
+        return [
+            [false, 1],
+            [false, 1000000],
+            [true, 0],
+            [true, -1],
+        ];
+    }
 
-        $os->$unsetter();
-        $this->assertNull($os->$getter());
+    /**
+     * @param $expectException
+     * @param $r
+     * @param $g
+     * @param $b
+     * @dataProvider providerBackgroundRGB
+     */
+    public function testWithBackgroundRGB($expectException, $r, $g, $b)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withBackgroundRGB($r, $g, $b);
+        $this->assertEquals([$r, $g, $b], $os->background());
+    }
+
+    public function providerBackgroundRGB()
+    {
+        return [
+            [false, 0, 0, 0],
+            [false, 100, 100, 100],
+            [false, 255, 255, 255],
+            [true, -1, 0, 0],
+            [true, 0, -1, 0],
+            [true, 0, 0, -1],
+            [true, 256, 0, 0],
+            [true, 0, 256, 0],
+            [true, 0, 0, 256],
+        ];
+    }
+
+    /**
+     * @param $expectException
+     * @param $bg
+     * @dataProvider providerBackgroundHex
+     */
+    public function testWithBackgroundHex($expectException, $bg)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withBackgroundHex($bg);
+        $this->assertEquals([$bg], $os->background());
+    }
+
+    public function providerBackgroundHex()
+    {
+        return [
+            [false, "000000"],
+            [false, "FFFFFF"],
+            [true, "too long"],
+            [true, "short"],
+        ];
+    }
+
+    /**
+     * @param $expectException
+     * @param $alpha
+     * @dataProvider providerFloatFromZeroToOne
+     */
+    public function testWithBackgroundAlpha($expectException, $alpha)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withBackgroundAlpha($alpha);
+        $this->assertEquals($alpha, $os->backgroundAlpha());
+    }
+
+    /**
+     * @param $expectException
+     * @param $val
+     * @dataProvider providerBrightness
+     */
+    public function testWithBrightness($expectException, $val)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withBrightness($val);
+        $this->assertEquals($val, $os->brightness());
+    }
+
+    public function providerBrightness()
+    {
+        return [
+            [false, -255],
+            [false, 0],
+            [false, 255],
+            [true, -256],
+            [true, 256],
+        ];
+    }
+
+    /**
+     * @param $expectException
+     * @param $val
+     * @dataProvider providerFloatFromZeroToOne
+     */
+    public function testWithContrast($expectException, $val)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withContrast($val);
+        $this->assertEquals($val, $os->contrast());
+    }
+
+    /**
+     * @param $expectException
+     * @param $val
+     * @dataProvider providerFloatFromZeroToOne
+     */
+    public function testWithSaturation($expectException, $val)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withSaturation($val);
+        $this->assertEquals($val, $os->saturation());
+    }
+
+    /**
+     * @param $expectException
+     * @param $val
+     * @dataProvider providerPositiveFloat
+     */
+    public function testWithBlur($expectException, $val)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withBlur($val);
+        $this->assertEquals($val, $os->blur());
+    }
+
+    /**
+     * @param $expectException
+     * @param $val
+     * @dataProvider providerPositiveFloat
+     */
+    public function testWithSharpen($expectException, $val)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withSharpen($val);
+        $this->assertEquals($val, $os->sharpen());
+    }
+
+    /**
+     * @param $expectException
+     * @param $val
+     * @dataProvider providerPositiveInt
+     */
+    public function testWithPixelate($expectException, $val)
+    {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withPixelate($val);
+        $this->assertEquals($val, $os->pixelate());
+    }
+
+    /**
+     * @param $expectException
+     * @param string $mode
+     * @param float $weight
+     * @param float $dividor
+     * @dataProvider providerUnsharpening
+     */
+    public function testWithUnsharpening(
+        $expectException,
+        string $mode,
+        ?float $weight,
+        ?float $dividor,
+        array $expectedArgs
+    ) {
+        if ($expectException) {
+            $this->expectException(\InvalidArgumentException::class);
+        }
+        $os = new OptionSet();
+        $os->withUnsharpening($mode, $weight, $dividor);
+        $this->assertEquals($expectedArgs, $os->unsharpening());
+    }
+
+    public function providerPositiveFloat()
+    {
+        return [
+            [false, 0.1],
+            [false, 1],
+            [false, 10.1],
+            [true, 0],
+            [true, -0.1],
+        ];
+    }
+
+    public function providerPositiveInt()
+    {
+        return [
+            [false, 1],
+            [false, 10],
+            [true, 0],
+            [true, -1],
+        ];
+    }
+
+    public function providerFloatFromZeroToOne()
+    {
+        return [
+            [false, 0],
+            [false, 1],
+            [false, 0.5],
+            [true, -0.1],
+            [true, 1.1],
+        ];
+    }
+
+    public function providerUnsharpening()
+    {
+        return [
+            [
+                false,
+                UnsharpeningMode::NONE,
+                null,
+                null,
+                [UnsharpeningMode::NONE, 1, OptionSet::DEFAULT_UNSHARPENING_DIVIDOR]
+            ],
+            [
+                false,
+                UnsharpeningMode::AUTO,
+                2,
+                30,
+                [UnsharpeningMode::AUTO, 2, 30]
+            ],
+            [
+                false,
+                UnsharpeningMode::ALWAYS,
+                4,
+                60,
+                [UnsharpeningMode::ALWAYS, 4, 60]
+            ],
+            [
+                true,
+                "invalid",
+                null,
+                null,
+                []
+            ],
+            [
+                true,
+                UnsharpeningMode::ALWAYS,
+                0,
+                60,
+                []
+            ],
+            [
+                true,
+                UnsharpeningMode::ALWAYS,
+                1,
+                0,
+                []
+            ],
+        ];
     }
 }
