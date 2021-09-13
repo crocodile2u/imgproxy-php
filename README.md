@@ -28,7 +28,7 @@ $url->setFit("fill")
 $url->useAdvancedMode();
 
 // set processing options:
-$url->options()->withResisingAlgorithm(ResisingAlgorithm::LINEAR)/* -> chain more with<FEATURE>() calls -> ... */;
+$url->options()->withResizingAlgorithm(ResizingAlgorithm::LINEAR)/* -> chain more with<FEATURE>() calls -> ... */;
   
 echo $url->toString();
 ```
