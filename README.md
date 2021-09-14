@@ -28,7 +28,7 @@ $url->setFit("fill")
 $url->useAdvancedMode();
 
 // set processing options:
-$url->options()->withResisingAlgorithm(ResisingAlgorithm::LINEAR)/* -> chain more with<FEATURE>() calls -> ... */;
+$url->options()->withDpr(2)/* -> chain more with<FEATURE>() calls -> ... */;
   
 echo $url->toString();
 ```
@@ -40,6 +40,11 @@ echo $url->toString();
  * Enlarge: _0_ (do not enlarge images)
  
  Please refer to imgproxy docs for parameter descriptions and possible values.
+
+# Imgproxy PRO features
+
+Certain features of Imgproxy are only available in the PRO
+version. Please refer to the docs https://docs.imgproxy.net/generating_the_url_advanced and make notice of the `PRO` label on certain processing options. **Using those options on a regular (non-PRO) instance of Imgproxy will result in "Invalid URL" response**. 
  
 # Testing in "real life"
 
