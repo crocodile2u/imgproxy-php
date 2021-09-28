@@ -94,6 +94,9 @@ class Url
     {
         $data = $this->builder->getSalt() . $unsignedPath;
         $sha256 = hash_hmac('sha256', $data, $this->builder->getKey(), true);
+        if ($this->builder->getSignatureSize() > 0) {
+            $sha256 = substr($sha256, 0, $this->builder->getSignatureSize());
+        }
         $sha256Encoded = base64_encode($sha256);
         $signature = str_replace(["+", "/", "="], ["-", "_", ""], $sha256Encoded);;
         return "/{$signature}{$unsignedPath}";

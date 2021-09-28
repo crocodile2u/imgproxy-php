@@ -14,6 +14,7 @@ class UrlTest extends TestCase
     const BASE_URL = "http://imgproxy";
     const IMAGE_URL = "local:///file.jpg";
     const IMAGE_URL_WITH_QUERY = "http://storage.recrm.ru/Static/13083_8483b9/11/WSIMG/1200_795_I_MC_jpg_W/resources/properties/1668/picture_0009.jpg?F80A64FF1B6E8585909336490F78A1E4";
+    const SIGNATURE_SIZE = 8;
 
     /**
      * @param string $fit
@@ -73,6 +74,12 @@ class UrlTest extends TestCase
         $this->assertEquals("/-o6q11Q3DrNtMnCz_bZQzPdDxrGgx9BfVqQBbndAOwo/fit/300/200/sm/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg", $url->signedPath());
     }
 
+    public function testSignedPathWithSignatureSize()
+    {
+        $url = new Url($this->secureUrlBuilderWithSignatureSize(), self::IMAGE_URL, 300, 200);
+        $this->assertEquals("/-o6q11Q3DrM/fit/300/200/sm/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg", $url->signedPath());
+    }
+
     public function testSignedPathWithQueryString()
     {
         $url = new Url($this->secureUrlBuilder(), self::IMAGE_URL_WITH_QUERY, 1200, 900);
@@ -89,6 +96,11 @@ class UrlTest extends TestCase
     protected function secureUrlBuilder(): UrlBuilder
     {
         return new UrlBuilder(self::BASE_URL, self::KEY, self::SALT);
+    }
+
+    protected function secureUrlBuilderWithSignatureSize(): UrlBuilder
+    {
+        return new UrlBuilder(self::BASE_URL, self::KEY, self::SALT, self::SIGNATURE_SIZE);
     }
 
     protected function insecureUrlBuilder(): UrlBuilder
