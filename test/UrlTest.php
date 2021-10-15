@@ -13,6 +13,7 @@ class UrlTest extends TestCase
     const SALT = "520f986b998545b4785e0defbc4f3c1203f22de2374a3d53cb7a7fe9fea309c5";
     const BASE_URL = "http://imgproxy";
     const IMAGE_URL = "local:///file.jpg";
+    const IMAGE_URL_UPPERCASE_EXT = "local:///file.JPG";
     const IMAGE_URL_WITH_QUERY = "http://storage.recrm.ru/Static/13083_8483b9/11/WSIMG/1200_795_I_MC_jpg_W/resources/properties/1668/picture_0009.jpg?F80A64FF1B6E8585909336490F78A1E4";
     const SIGNATURE_SIZE = 8;
 
@@ -57,6 +58,13 @@ class UrlTest extends TestCase
     {
         $url = new Url($this->secureUrlBuilder(), self::IMAGE_URL, 300, 200);
         $expected = self::BASE_URL . "/-o6q11Q3DrNtMnCz_bZQzPdDxrGgx9BfVqQBbndAOwo/fit/300/200/sm/0/bG9jYWw6Ly8vZmlsZS5qcGc.jpg";
+        $this->assertEquals($expected, $url->toString());
+    }
+
+    public function testExtensionConvertedToLowercase()
+    {
+        $url = new Url($this->secureUrlBuilder(), self::IMAGE_URL_UPPERCASE_EXT, 300, 200);
+        $expected = self::BASE_URL . "/QTaCD3G75WjlvH7dPLlrEO7BMS6UCKztzZGd1RFVDJY/fit/300/200/sm/0/bG9jYWw6Ly8vZmlsZS5KUEc.jpg";
         $this->assertEquals($expected, $url->toString());
     }
 

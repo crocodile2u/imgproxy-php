@@ -189,7 +189,7 @@ class Url
             $path = parse_url($this->imageUrl, PHP_URL_PATH);
         }
 
-        $ext = $path ? pathinfo($path, PATHINFO_EXTENSION) : "";
+        $ext = $path ? strtolower(pathinfo($path, PATHINFO_EXTENSION)) : "";
         return $ext ?: "";
     }
 
@@ -200,16 +200,22 @@ class Url
     {
         $enlarge = (string)(int)$this->enlarge;
         $encodedUrl = rtrim(strtr(base64_encode($this->imageUrl), '+/', '-_'), '=');
-        $ext = $this->extension ?: $this->resolveExtension();
         $w = $this->options->width();
         $h = $this->options->height();
-        return "/{$this->fit}/{$w}/{$h}/{$this->gravity}/{$enlarge}/{$encodedUrl}" . ($ext ? ".$ext" : "");
+        $path = "/{$this->fit}/{$w}/{$h}/{$this->gravity}/{$enlarge}/{$encodedUrl}";
+        return $this->appendExtension($path);
     }
 
     private function unsignedPathAdvanced()
     {
         $encodedUrl = rtrim(strtr(base64_encode($this->imageUrl), '+/', '-_'), '=');
+        $path = "/{$this->options->toString()}/{$encodedUrl}";
+        return $this->appendExtension($path);
+    }
+
+    private function appendExtension(string $path): string
+    {
         $ext = $this->extension ?: $this->resolveExtension();
-        return "/{$this->options->toString()}/{$encodedUrl}" . ($ext ? ".$ext" : "");
+        return $path . ($ext ? ".$ext" : "");
     }
 }
