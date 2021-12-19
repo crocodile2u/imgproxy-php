@@ -71,6 +71,7 @@ class OptionSet
         switch ($rt) {
             case ResizingType::FIT:
             case ResizingType::FILL:
+            case ResizingType::FORCE:
             case ResizingType::AUTO:
                 return $this->set(ProcessingOption::RESIZING_TYPE, $rt);
             default:
