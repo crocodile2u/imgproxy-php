@@ -8,6 +8,7 @@ class ResizingType
 {
     public const FIT = "fit",
         FILL = "fill",
+        FILL_DOWN = "fill-down",
         FORCE = "force",
         AUTO = "auto";
 }
