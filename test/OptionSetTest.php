@@ -141,6 +141,7 @@ class OptionSetTest extends TestCase
         return [
             [ResizingType::AUTO, false],
             [ResizingType::FILL, false],
+            [ResizingType::FILL_DOWN, false],
             [ResizingType::FIT, false],
             [ResizingType::FORCE, false],
             ["invalid", true],
