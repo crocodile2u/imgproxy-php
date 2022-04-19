@@ -966,6 +966,13 @@ class OptionSetTest extends TestCase
         $this->assertEquals("webp", $os->format());
     }
 
+    public function testWithQuality()
+    {
+        $os = new OptionSet();
+        $os->withQuality(70);
+        $this->assertEquals(70, $os->quality());
+    }
+
     public function testUnset()
     {
         $os = new OptionSet();

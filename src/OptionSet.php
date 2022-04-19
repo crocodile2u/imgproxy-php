@@ -680,6 +680,19 @@ class OptionSet
         return $this->firstValue(ProcessingOption::FORMAT, 'string');
     }
 
+    public function withQuality(int $quality): self
+    {
+        if ($quality < 0 || $quality > 100) {
+            throw new \InvalidArgumentException("quality must be >= 0 and <= 100");
+        }
+        return $this->set(ProcessingOption::QUALITY, $quality);
+    }
+
+    public function quality(): ?int
+    {
+        return $this->firstValue(ProcessingOption::QUALITY, 'int');
+    }
+
     protected function firstValue(string $name, string $type)
     {
         $o = $this->get($name);
