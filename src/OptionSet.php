@@ -13,7 +13,7 @@ class OptionSet
      */
     private $options = [];
 
-    private function set(string $name, ...$args): self
+    public function set(string $name, ...$args): self
     {
         $this->options[$name] = $args;
         return $this;
