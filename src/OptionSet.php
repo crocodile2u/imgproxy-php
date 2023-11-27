@@ -13,10 +13,15 @@ class OptionSet
      */
     private $options = [];
 
-    public function set(string $name, ...$args): self
+    private function set(string $name, ...$args): self
     {
         $this->options[$name] = $args;
         return $this;
+    }
+
+    public function setUnsafe(string $name, ...$args): self
+    {
+        return $this->set($name, ...$args);
     }
 
     public function unset(string $name): self
