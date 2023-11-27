@@ -11,6 +11,7 @@ use Imgproxy\Rotate;
 use Imgproxy\UnsharpeningMode;
 use Imgproxy\WatermarkPosition;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 class OptionSetTest extends TestCase
 {
@@ -971,6 +972,23 @@ class OptionSetTest extends TestCase
         $os = new OptionSet();
         $os->withQuality(70);
         $this->assertEquals(70, $os->quality());
+    }
+
+    public function testSetUnsafe(): void
+    {
+        $os = new OptionSet();
+        $optionName = 'zoom';
+        $args = ['2', '2'];
+
+        $os->setUnsafe($optionName, ...$args);
+
+        $reflectionClass = new ReflectionClass(OptionSet::class);
+        $optionsProperty = $reflectionClass->getProperty('options');
+        $optionsProperty->setAccessible(true);
+        $options = $optionsProperty->getValue($os);
+
+        $this->assertArrayHasKey($optionName, $options);
+        $this->assertSame($args, $options[$optionName]);
     }
 
     public function testUnset()

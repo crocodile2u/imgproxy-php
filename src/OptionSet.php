@@ -19,6 +19,11 @@ class OptionSet
         return $this;
     }
 
+    public function setUnsafe(string $name, ...$args): self
+    {
+        return $this->set($name, ...$args);
+    }
+
     public function unset(string $name): self
     {
         unset($this->options[$name]);
