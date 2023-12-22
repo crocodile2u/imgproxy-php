@@ -72,17 +72,11 @@ class UrlBuilder
         return $this->baseUrl;
     }
 
-    /**
-     * @return bool
-     */
     public function getSalt(): string
     {
         return $this->salt;
     }
 
-    /**
-     * @return bool
-     */
     public function getKey(): string
     {
         return $this->key;
