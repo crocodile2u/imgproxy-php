@@ -47,7 +47,19 @@ class CLI
                     break;
             }
         }
-        $builder = new UrlBuilder($base, $key, $salt);
+
+        if(preg_match('/^[0-9]+$/', $width)){
+          $width = (int) trim($width);
+        } else {
+          throw new \Exception("Width does not look like valid");
+        }
+        if(preg_match('/^[0-9]+$/', $height)){
+          $height = (int) trim($height);
+        } else {
+          throw new \Exception("Height does not look like valid");
+        }
+
+      $builder = new UrlBuilder($base, $key, $salt);
         $url = new Url($builder, $source, $width, $height);
         if ($advanced) {
             $url->useAdvancedMode();
