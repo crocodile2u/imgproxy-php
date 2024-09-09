@@ -1,5 +1,5 @@
 {
-    "name": "crocodile2u/imgproxy-php",
+    "name": "elgentos/imgproxy-php",
     "description": "URL generator for darthsim/imgproxy",
     "keywords": ["darthsim", "imgproxy", "url", "generator"],
     "license": "MIT",
@@ -9,6 +9,10 @@
             "email": "crocodile2u@gmail.com",
             "homepage": "https://github.com/crocodile2u",
             "role": "Developer"
+        },
+        {
+            "name": "Elgentos",
+            "email": "info@elgentos.nl"
         }
     ],
     "require": {
