@@ -42,12 +42,51 @@ class UrlTest extends TestCase
      * @param string $gravity
      * @param bool $enlarge
      * @param string $expected
+     * @dataProvider provideUnsignedPathLegacyModePlainSourceUrlInput
+     */
+    public function testUnsignedPathLegacyModePlainSourceUrl(string $url, string $fit, int $w, int $h, string $gravity, bool $enlarge, string $expected)
+    {
+        $url = new Url($this->secureUrlBuilder(), $url, $w, $h);
+        $url->usePlainSourceUrl()
+            ->setFit($fit)
+            ->setGravity($gravity)
+            ->setEnlarge($enlarge);
+        $this->assertEquals($expected, $url->unsignedPath());
+    }
+
+    /**
+     * @param string $fit
+     * @param int $w
+     * @param int $h
+     * @param string $gravity
+     * @param bool $enlarge
+     * @param string $expected
      * @dataProvider provideUnsignedPathAdvancedModeInput
      */
     public function testUnsignedPathAnvancedMode(string $url, string $fit, int $w, int $h, string $gravity, bool $enlarge, string $expected)
     {
         $url = new Url($this->secureUrlBuilder(), $url, $w, $h);
         $url->useAdvancedMode()
+            ->setFit($fit)
+            ->setGravity($gravity)
+            ->setEnlarge($enlarge);
+        $this->assertEquals($expected, $url->unsignedPath());
+    }
+
+    /**
+     * @param string $fit
+     * @param int $w
+     * @param int $h
+     * @param string $gravity
+     * @param bool $enlarge
+     * @param string $expected
+     * @dataProvider provideUnsignedPathAdvancedModePlainSourceUrlInput
+     */
+    public function testUnsignedPathAdvancedModePlainSourceUrl(string $url, string $fit, int $w, int $h, string $gravity, bool $enlarge, string $expected)
+    {
+        $url = new Url($this->secureUrlBuilder(), $url, $w, $h);
+        $url->useAdvancedMode()
+            ->usePlainSourceUrl()
             ->setFit($fit)
             ->setGravity($gravity)
             ->setEnlarge($enlarge);
@@ -250,6 +289,144 @@ class UrlTest extends TestCase
                 "sm",
                 false,
                 "/w:1200/h:900/rt:fit/g:sm/aHR0cDovL3N0b3JhZ2UucmVjcm0ucnUvU3RhdGljLzEzMDgzXzg0ODNiOS8xMS9XU0lNRy8xMjAwXzc5NV9JX01DX2pwZ19XL3Jlc291cmNlcy9wcm9wZXJ0aWVzLzE2NjgvcGljdHVyZV8wMDA5LmpwZz9GODBBNjRGRjFCNkU4NTg1OTA5MzM2NDkwRjc4QTFFNA.jpg"
+            ],
+        ];
+    }
+
+    public function provideUnsignedPathLegacyModePlainSourceUrlInput()
+    {
+        return [
+            [
+                self::IMAGE_URL,
+                "fit",
+                300,
+                200,
+                "sm",
+                false,
+                "/fit/300/200/sm/0/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL,
+                "fill",
+                300,
+                200,
+                "sm",
+                false,
+                "/fill/300/200/sm/0/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL,
+                "fit",
+                400,
+                200,
+                "sm",
+                false,
+                "/fit/400/200/sm/0/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL,
+                "fit",
+                300,
+                300,
+                "sm",
+                false,
+                "/fit/300/300/sm/0/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL,
+                "fit",
+                300,
+                200,
+                "no",
+                false,
+                "/fit/300/200/no/0/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL,
+                "fit",
+                300,
+                200,
+                "sm",
+                true,
+                "/fit/300/200/sm/1/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL_WITH_QUERY,
+                "fit",
+                1200,
+                900,
+                "sm",
+                false,
+                "/fit/1200/900/sm/0/plain/http://storage.recrm.ru/Static/13083_8483b9/11/WSIMG/1200_795_I_MC_jpg_W/resources/properties/1668/picture_0009.jpg?F80A64FF1B6E8585909336490F78A1E4@jpg"
+            ],
+        ];
+    }
+
+    public function provideUnsignedPathAdvancedModePlainSourceUrlInput()
+    {
+        return [
+            [
+                self::IMAGE_URL,
+                "fit",
+                300,
+                200,
+                "sm",
+                false,
+                "/w:300/h:200/rt:fit/g:sm/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL,
+                "fill",
+                300,
+                200,
+                "sm",
+                false,
+                "/w:300/h:200/rt:fill/g:sm/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL,
+                "fit",
+                400,
+                200,
+                "sm",
+                false,
+                "/w:400/h:200/rt:fit/g:sm/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL,
+                "fit",
+                300,
+                300,
+                "sm",
+                false,
+                "/w:300/h:300/rt:fit/g:sm/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL,
+                "fit",
+                300,
+                200,
+                "no",
+                false,
+                "/w:300/h:200/rt:fit/g:no:0:0/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL,
+                "fit",
+                300,
+                200,
+                "sm",
+                true,
+                "/w:300/h:200/rt:fit/g:sm/el:1/plain/local:///file.jpg"
+            ],
+            [
+                self::IMAGE_URL_WITH_QUERY,
+                "fit",
+                1200,
+                900,
+                "sm",
+                false,
+                "/w:1200/h:900/rt:fit/g:sm/plain/http://storage.recrm.ru/Static/13083_8483b9/11/WSIMG/1200_795_I_MC_jpg_W/resources/properties/1668/picture_0009.jpg?F80A64FF1B6E8585909336490F78A1E4@jpg"
             ],
         ];
     }
