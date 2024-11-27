@@ -36,7 +36,7 @@ class UrlBuilder
      * @param string $salt
      * @throws Exception
      */
-    public function __construct(string $baseUrl, string $key = null, string $salt = null, $signatureSize = 0)
+    public function __construct(string $baseUrl, ?string $key = null, ?string $salt = null, $signatureSize = 0)
     {
         if ($key && $salt) {
             $this->key = pack("H*" , $key) ?: $this->throwException("Key expected to be hex-encoded string");
@@ -55,7 +55,7 @@ class UrlBuilder
         string $fit = "fit",
         string $gravity = "sm",
         bool $enlarge = false,
-        string $extension = null
+        ?string $extension = null
     ): Url {
         return (new Url($this, $imageUrl, $w, $h))
             ->setFit($fit)
