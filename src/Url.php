@@ -8,6 +8,9 @@ class Url
 {
     public const MODE_LEGACY = 'legacy';
     public const MODE_ADVANCED = 'advanced';
+
+    public const SOURCE_URL_PLAIN = 'plain';
+    public const SOURCE_URL_ENCODED = 'encoded';
     /**
      * @var string
      */
@@ -41,6 +44,11 @@ class Url
     private $mode = self::MODE_LEGACY;
 
     /**
+     * @var string
+     */
+    private $sourceUrlType = self::SOURCE_URL_ENCODED;
+
+    /**
      * Url constructor.
      * @param string $imageUrl
      * @param int $w
@@ -64,6 +72,18 @@ class Url
     public function useAdvancedMode(): self
     {
         $this->mode = self::MODE_ADVANCED;
+        return $this;
+    }
+
+    public function usePlainSourceUrl(): self
+    {
+        $this->sourceUrlType = self::SOURCE_URL_PLAIN;
+        return $this;
+    }
+
+    public function useEncodedSourceUrl(): self
+    {
+        $this->sourceUrlType = self::SOURCE_URL_ENCODED;
         return $this;
     }
 
@@ -199,23 +219,45 @@ class Url
     private function unsignedPathLegacy(): string
     {
         $enlarge = (string)(int)$this->enlarge;
-        $encodedUrl = rtrim(strtr(base64_encode($this->imageUrl), '+/', '-_'), '=');
+        $url = $this->generateSourceUrl();
         $w = $this->options->width();
         $h = $this->options->height();
-        $path = "/{$this->fit}/{$w}/{$h}/{$this->gravity}/{$enlarge}/{$encodedUrl}";
+        $path = "/{$this->fit}/{$w}/{$h}/{$this->gravity}/{$enlarge}/{$url}";
         return $this->appendExtension($path);
     }
 
     private function unsignedPathAdvanced()
     {
-        $encodedUrl = rtrim(strtr(base64_encode($this->imageUrl), '+/', '-_'), '=');
-        $path = "/{$this->options->toString()}/{$encodedUrl}";
+        $url = $this->generateSourceUrl();
+        $path = "/{$this->options->toString()}/{$url}";
+
         return $this->appendExtension($path);
     }
 
     private function appendExtension(string $path): string
     {
         $ext = $this->extension ?: $this->resolveExtension();
+
+        if ($this->sourceUrlType === self::SOURCE_URL_PLAIN) {
+            return $this->appendPlainSourceUrlExtension($path, $ext);
+        }
         return $path . ($ext ? ".$ext" : "");
+    }
+
+    private function generateSourceUrl(): string
+    {
+        if ($this->sourceUrlType === self::SOURCE_URL_PLAIN) {
+            return sprintf('plain/%s', $this->imageUrl);
+        }
+
+        return rtrim(strtr(base64_encode($this->imageUrl), '+/', '-_'), '=');
+    }
+
+    private function appendPlainSourceUrlExtension(string $path, ?string $extension): string
+    {
+        if (preg_match('/[?&]([^=]+)(=([^&#]*))?/', $path)) {
+            return $path . ($extension ? "@$extension" : "");
+        }
+        return $path;
     }
 }
